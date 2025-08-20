@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="status">Testing connection...</div>
+    
+    <script>
+        const supabaseUrl = 'https://eiwttgmiihprapodycrka.supabase.co';
+        
+        async function testConnection() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                // Test basic connectivity
+                const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpd3R0Z21paHByYXBvZHljcmthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2MDYyNTcsImV4cCI6MjA2OTE4MjI1N30.Ow0L3qpbyjzAnadfX8rdMmO3HyJ0LOTZM1R9q09qmUE',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpd3R0Z21paHByYXBvZHljcmthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2MDYyNTcsImV4cCI6MjA2OTE4MjI1N30.Ow0L3qpbyjzAnadfX8rdMmO3HyJ0LOTZM1R9q09qmUE'
+                    }
+                });
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = `
+                        <div style="color: green; padding: 10px; border: 1px solid green; border-radius: 5px;">
+                            ✅ Connection successful!<br>
+                            Status: ${response.status}<br>
+                            URL: ${supabaseUrl}
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `
+                        <div style="color: orange; padding: 10px; border: 1px solid orange; border-radius: 5px;">
+                            ⚠️ Connection established but got error response<br>
+                            Status: ${response.status}<br>
+                            URL: ${supabaseUrl}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div style="color: red; padding: 10px; border: 1px solid red; border-radius: 5px;">
+                        ❌ Connection failed<br>
+                        Error: ${error.message}<br>
+                        URL: ${supabaseUrl}<br><br>
+                        <strong>Possible issues:</strong><br>
+                        1. Project is paused/inactive<br>
+                        2. Project URL is incorrect<br>
+                        3. Project was deleted<br>
+                        4. Network connectivity issues
+                    </div>
+                `;
+            }
+        }
+        
+        // Test connection when page loads
+        testConnection();
+    </script>
+</body>
+</html>

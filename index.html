@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/image.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="description" content="A comprehensive tournament management platform for organizers and players" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kheleko" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Kheleko" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon.svg" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon.svg" />
+    
+    <!-- Preconnect to improve performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <title>Kheleko - Tournament Management Platform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('✅ Service Worker registered successfully:', registration);
+            
+            // Check if PWA is installable
+            if (registration.installing) {
+              console.log('🔄 Service Worker installing...');
+            } else if (registration.waiting) {
+              console.log('⏳ Service Worker waiting...');
+            } else if (registration.active) {
+              console.log('✅ Service Worker active');
+            }
+          } catch (error) {
+            console.error('❌ Service Worker registration failed:', error);
+          }
+        });
+      } else {
+        console.log('❌ Service Worker not supported');
+      }
+    </script>
+  </body>
+</html>

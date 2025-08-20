@@ -1,0 +1,62 @@
+{
+  "appId": "com.khelkheleko.app",
+  "productName": "खेल खेलेको",
+  "directories": {
+    "output": "dist-electron"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "node_modules/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "public/icon.png",
+      "to": "icon.png"
+    }
+  ],
+  "mac": {
+    "category": "public.app-category.sports",
+    "icon": "public/icon.png",
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      }
+    ]
+  },
+  "win": {
+    "icon": "public/icon.png",
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64", "ia32"]
+      }
+    ]
+  },
+  "linux": {
+    "icon": "public/icon.png",
+    "category": "Sports",
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "yourusername",
+    "repo": "khelkheleko"
+  }
+}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venue System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🏟️ Venue System Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions</h3>
+        <p>This page helps you test if the venue system is working properly. Follow these steps:</p>
+        <ol>
+            <li>Make sure your React app is running</li>
+            <li>Check if you can access the venues page</li>
+            <li>Test the admin venue management</li>
+            <li>Verify database connection</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🔗 Navigation Tests</h3>
+        <p>Test these links in your app:</p>
+        <ul>
+            <li><strong>Venues Page:</strong> <code>/venues</code></li>
+            <li><strong>Admin Dashboard:</strong> <code>/admin</code> (then click Venues tab)</li>
+            <li><strong>Homepage:</strong> Check if featured venues section appears</li>
+        </ul>
+        <button class="btn-primary" onclick="window.open('/venues', '_blank')">Test Venues Page</button>
+        <button class="btn-primary" onclick="window.open('/admin', '_blank')">Test Admin Dashboard</button>
+    </div>
+
+    <div class="test-section">
+        <h3>🗄️ Database Tests</h3>
+        <p>Check if the database migration has been run:</p>
+        <ul>
+            <li>Go to Supabase Dashboard</li>
+            <li>Check if <code>sports_facilities</code> table exists</li>
+            <li>Verify sample venues are present</li>
+        </ul>
+        <button class="btn-success" onclick="checkDatabase()">Check Database Status</button>
+    </div>
+
+    <div class="test-section">
+        <h3>🐛 Common Issues & Fixes</h3>
+        <div id="issues">
+            <p><strong>Issue:</strong> "Cannot read property 'map' of undefined"</p>
+            <p><strong>Fix:</strong> Check if NEPAL_PROVINCES, SPORTS_TYPES, AMENITIES are properly imported</p>
+            
+            <p><strong>Issue:</strong> "venueDiscoveryService.getById is not a function"</p>
+            <p><strong>Fix:</strong> Make sure getById is exported in venueDiscoveryService</p>
+            
+            <p><strong>Issue:</strong> "Table 'sports_facilities' doesn't exist"</p>
+            <p><strong>Fix:</strong> Run the database migration in Supabase</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>✅ Success Checklist</h3>
+        <div id="checklist">
+            <input type="checkbox" id="check1"> <label for="check1">Can access /venues page</label><br>
+            <input type="checkbox" id="check2"> <label for="check2">Can access admin dashboard</label><br>
+            <input type="checkbox" id="check3"> <label for="check3">Venues tab appears in admin</label><br>
+            <input type="checkbox" id="check4"> <label for="check4">Can add/edit venues</label><br>
+            <input type="checkbox" id="check5"> <label for="check5">Featured venues show on homepage</label><br>
+            <input type="checkbox" id="check6"> <label for="check6">Venue detail pages work</label><br>
+        </div>
+    </div>
+
+    <script>
+        function checkDatabase() {
+            alert('Please check your Supabase dashboard:\n\n1. Go to Table Editor\n2. Look for "sports_facilities" table\n3. Check if it has sample data\n4. Verify RLS policies are enabled');
+        }
+
+        // Auto-check based on URL
+        if (window.location.href.includes('/venues')) {
+            document.getElementById('check1').checked = true;
+        }
+        if (window.location.href.includes('/admin')) {
+            document.getElementById('check2').checked = true;
+        }
+    </script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Connection Test - Venue Workflow</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .loading { opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Database Connection Test - Venue Workflow System</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions</h3>
+        <p>This page will help you verify that your database is properly set up for the venue workflow system.</p>
+        <ol>
+            <li>Click "Test Database Connection" to verify Supabase connectivity</li>
+            <li>Click "Check Current Schema" to see what tables and columns exist</li>
+            <li>Click "Test Venue Workflow" to verify the new system works</li>
+            <li>Click "Test Payment System" to verify payment tables exist</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🔌 Database Connection</h3>
+        <button onclick="testConnection()">Test Database Connection</button>
+        <div id="connection-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🏗️ Database Schema</h3>
+        <button onclick="checkSchema()">Check Current Schema</button>
+        <div id="schema-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🏟️ Venue Workflow Test</h3>
+        <button onclick="testVenueWorkflow()">Test Venue Workflow</button>
+        <div id="venue-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>💰 Payment System Test</h3>
+        <button onclick="testPaymentSystem()">Test Payment System</button>
+        <div id="payment-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Current Data Status</h3>
+        <button onclick="checkDataStatus()">Check Data Status</button>
+        <div id="data-result"></div>
+    </div>
+
+    <script>
+        // You'll need to replace these with your actual Supabase credentials
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        
+        let supabase;
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `test-section ${type}`;
+            element.innerHTML = content;
+        }
+
+        async function testConnection() {
+            try {
+                if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+                    showResult('connection-result', `
+                        <h4>❌ Configuration Required</h4>
+                        <p>Please update the SUPABASE_URL and SUPABASE_ANON_KEY variables in this file with your actual Supabase credentials.</p>
+                        <p>You can find these in your Supabase Dashboard > Settings > API</p>
+                    `, 'error');
+                    return;
+                }
+
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                // Test basic connection
+                const { data, error } = await supabase.from('sports_facilities').select('count').limit(1);
+                
+                if (error) throw error;
+                
+                showResult('connection-result', `
+                    <h4>✅ Connection Successful</h4>
+                    <p>Successfully connected to Supabase!</p>
+                    <p>Database: ${SUPABASE_URL}</p>
+                `, 'success');
+                
+            } catch (error) {
+                showResult('connection-result', `
+                    <h4>❌ Connection Failed</h4>
+                    <p>Error: ${error.message}</p>
+                    <p>Please check your Supabase credentials and ensure the service is running.</p>
+                `, 'error');
+            }
+        }
+
+        async function checkSchema() {
+            if (!supabase) {
+                showResult('schema-result', '<p>Please test the connection first.</p>', 'error');
+                return;
+            }
+
+            try {
+                // Check sports_facilities table structure
+                const { data: columns, error } = await supabase
+                    .from('information_schema.columns')
+                    .select('column_name, data_type, is_nullable')
+                    .eq('table_name', 'sports_facilities')
+                    .eq('table_schema', 'public')
+                    .order('ordinal_position');
+
+                if (error) throw error;
+
+                let venueWorkflowFields = [];
+                let existingFields = [];
+
+                columns.forEach(col => {
+                    if (['status', 'listing_type', 'booking_mode', 'source', 'data_quality_score', 'claimed_by', 'last_verified_at', 'price_range_min', 'price_range_max'].includes(col.column_name)) {
+                        venueWorkflowFields.push(col);
+                    } else {
+                        existingFields.push(col);
+                    }
+                });
+
+                // Check for new tables
+                const { data: tables, error: tablesError } = await supabase
+                    .from('information_schema.tables')
+                    .select('table_name')
+                    .eq('table_schema', 'public')
+                    .in('table_name', ['venue_leads', 'venue_claim_requests', 'payment_methods', 'tournament_commissions', 'player_registration_fees', 'payment_verifications']);
+
+                if (tablesError) throw tablesError;
+
+                let result = '<h4>📋 Database Schema Status</h4>';
+                
+                // Venue workflow fields
+                result += '<h5>🏟️ Venue Workflow Fields:</h5>';
+                if (venueWorkflowFields.length > 0) {
+                    result += '<p>✅ Found venue workflow fields:</p><ul>';
+                    venueWorkflowFields.forEach(field => {
+                        result += `<li><strong>${field.column_name}</strong> (${field.data_type})</li>`;
+                    });
+                    result += '</ul>';
+                } else {
+                    result += '<p>❌ <strong>Venue workflow fields are missing!</strong></p>';
+                    result += '<p>You need to run the database migration script.</p>';
+                }
+
+                // New tables
+                result += '<h5>🆕 New Tables:</h5>';
+                if (tables.length > 0) {
+                    result += '<p>✅ Found new tables:</p><ul>';
+                    tables.forEach(table => {
+                        result += `<li><strong>${table.table_name}</strong></li>`;
+                    });
+                    result += '</ul>';
+                } else {
+                    result += '<p>❌ <strong>New tables are missing!</strong></p>';
+                    result += '<p>You need to run the database migration script.</p>';
+                }
+
+                showResult('schema-result', result, venueWorkflowFields.length > 0 && tables.length > 0 ? 'success' : 'error');
+
+            } catch (error) {
+                showResult('schema-result', `
+                    <h4>❌ Schema Check Failed</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        async function testVenueWorkflow() {
+            if (!supabase) {
+                showResult('venue-result', '<p>Please test the connection first.</p>', 'error');
+                return;
+            }
+
+            try {
+                // Test venue workflow functionality
+                const { data: venues, error } = await supabase
+                    .from('sports_facilities')
+                    .select('id, name, status, listing_type, booking_mode, data_quality_score')
+                    .limit(5);
+
+                if (error) throw error;
+
+                let result = '<h4>🏟️ Venue Workflow Test</h4>';
+                
+                if (venues && venues.length > 0) {
+                    result += '<p>✅ Found venues with workflow data:</p>';
+                    result += '<table border="1" style="border-collapse: collapse; width: 100%;">';
+                    result += '<tr><th>Name</th><th>Status</th><th>Listing Type</th><th>Booking Mode</th><th>Quality Score</th></tr>';
+                    
+                    venues.forEach(venue => {
+                        result += `<tr>
+                            <td>${venue.name || 'N/A'}</td>
+                            <td>${venue.status || 'N/A'}</td>
+                            <td>${venue.listing_type || 'N/A'}</td>
+                            <td>${venue.booking_mode || 'N/A'}</td>
+                            <td>${venue.data_quality_score || 'N/A'}</td>
+                        </tr>`;
+                    });
+                    result += '</table>';
+                } else {
+                    result += '<p>❌ No venues found or workflow fields are missing.</p>';
+                }
+
+                showResult('venue-result', result, venues && venues.length > 0 ? 'success' : 'error');
+
+            } catch (error) {
+                showResult('venue-result', `
+                    <h4>❌ Venue Workflow Test Failed</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        async function testPaymentSystem() {
+            if (!supabase) {
+                showResult('payment-result', '<p>Please test the connection first.</p>', 'error');
+                return;
+            }
+
+            try {
+                // Check payment-related tables
+                const { data: tables, error } = await supabase
+                    .from('information_schema.tables')
+                    .select('table_name')
+                    .eq('table_schema', 'public')
+                    .in('table_name', ['payment_methods', 'tournament_commissions', 'player_registration_fees', 'payment_verifications']);
+
+                if (error) throw error;
+
+                let result = '<h4>💰 Payment System Test</h4>';
+                
+                if (tables.length > 0) {
+                    result += '<p>✅ Found payment system tables:</p><ul>';
+                    tables.forEach(table => {
+                        result += `<li><strong>${table.table_name}</strong></li>`;
+                    });
+                    result += '</ul>';
+
+                    // Test payment methods
+                    try {
+                        const { data: paymentMethods, error: pmError } = await supabase
+                            .from('payment_methods')
+                            .select('*')
+                            .limit(5);
+
+                        if (!pmError && paymentMethods && paymentMethods.length > 0) {
+                            result += '<p>✅ Payment methods are configured:</p><ul>';
+                            paymentMethods.forEach(pm => {
+                                result += `<li><strong>${pm.name}</strong> (${pm.type})</li>`;
+                            });
+                            result += '</ul>';
+                        } else {
+                            result += '<p>⚠️ No payment methods found. You may need to insert default ones.</p>';
+                        }
+                    } catch (pmError) {
+                        result += `<p>⚠️ Could not check payment methods: ${pmError.message}</p>`;
+                    }
+                } else {
+                    result += '<p>❌ <strong>Payment system tables are missing!</strong></p>';
+                    result += '<p>You need to run the database migration script.</p>';
+                }
+
+                showResult('payment-result', result, tables.length > 0 ? 'success' : 'error');
+
+            } catch (error) {
+                showResult('payment-result', `
+                    <h4>❌ Payment System Test Failed</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        async function checkDataStatus() {
+            if (!supabase) {
+                showResult('data-result', '<p>Please test the connection first.</p>', 'error');
+                return;
+            }
+
+            try {
+                let result = '<h4>📊 Current Data Status</h4>';
+
+                // Check venues count
+                const { count: venuesCount, error: venuesError } = await supabase
+                    .from('sports_facilities')
+                    .select('*', { count: 'exact', head: true });
+
+                if (!venuesError) {
+                    result += `<p>🏟️ Total Venues: <strong>${venuesCount}</strong></p>`;
+                }
+
+                // Check leads count
+                try {
+                    const { count: leadsCount, error: leadsError } = await supabase
+                        .from('venue_leads')
+                        .select('*', { count: 'exact', head: true });
+
+                    if (!leadsError) {
+                        result += `<p>📝 Total Leads: <strong>${leadsCount}</strong></p>`;
+                    }
+                } catch (e) {
+                    result += '<p>📝 Total Leads: <strong>Table not found</strong></p>';
+                }
+
+                // Check claims count
+                try {
+                    const { count: claimsCount, error: claimsError } = await supabase
+                        .from('venue_claim_requests')
+                        .select('*', { count: 'exact', head: true });
+
+                    if (!claimsError) {
+                        result += `<p>🏷️ Total Claims: <strong>${claimsCount}</strong></p>`;
+                    }
+                } catch (e) {
+                    result += '<p>🏷️ Total Claims: <strong>Table not found</strong></p>';
+                }
+
+                // Check tournaments count
+                try {
+                    const { count: tournamentsCount, error: tournamentsError } = await supabase
+                        .from('tournaments')
+                        .select('*', { count: 'exact', head: true });
+
+                    if (!tournamentsError) {
+                        result += `<p>🏆 Total Tournaments: <strong>${tournamentsCount}</strong></p>`;
+                    }
+                } catch (e) {
+                    result += '<p>🏆 Total Tournaments: <strong>Table not found</strong></p>';
+                }
+
+                showResult('data-result', result, 'info');
+
+            } catch (error) {
+                showResult('data-result', `
+                    <h4>❌ Data Status Check Failed</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        // Auto-test connection on page load
+        window.onload = function() {
+            if (SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+                testConnection();
+            }
+        };
+    </script>
+</body>
+</html>
+
+

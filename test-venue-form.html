@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venue Form Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-form { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .debug { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🏟️ Venue Form Test</h1>
+    
+    <div class="debug">
+        <h3>🐛 Debug Information</h3>
+        <p><strong>Issue:</strong> Admin tries to add venue but redirects to tournaments section</p>
+        <p><strong>Possible Causes:</strong></p>
+        <ul>
+            <li>Form submission causing page reload</li>
+            <li>Tab state being reset after venue creation</li>
+            <li>Real-time subscriptions interfering</li>
+            <li>Component re-rendering and resetting tab</li>
+        </ul>
+    </div>
+
+    <div class="test-form">
+        <h3>Test Steps:</h3>
+        <ol>
+            <li>Open your React app</li>
+            <li>Navigate to <code>/admin</code></li>
+            <li>Click the "Venues" tab</li>
+            <li>Click "Add Venue from Google Maps"</li>
+            <li>Fill out the form and submit</li>
+            <li>Check if it stays on venues tab or redirects</li>
+        </ol>
+
+        <h3>Console Debugging:</h3>
+        <p>Open browser console (F12) and look for:</p>
+        <ul>
+            <li><code>🎯 VenueManagement: Submitting venue form...</code></li>
+            <li><code>🔄 VenueManagement: Adding new venue...</code></li>
+            <li><code>✅ VenueManagement: Venue added successfully</code></li>
+            <li><code>🎯 AdminDashboard: Tab changed to: venues</code></li>
+        </ul>
+
+        <h3>Quick Fixes to Try:</h3>
+        <ol>
+            <li><strong>Check form submission:</strong> Make sure form doesn't reload page</li>
+            <li><strong>Check tab state:</strong> Verify selectedTab stays as 'venues'</li>
+            <li><strong>Check real-time subscriptions:</strong> Look for venue-related subscriptions</li>
+            <li><strong>Check component lifecycle:</strong> See if component unmounts/remounts</li>
+        </ol>
+    </div>
+
+    <script>
+        // Simple test to check if form submission works
+        function testFormSubmission() {
+            console.log('🧪 Testing form submission...');
+            
+            // Simulate form submission
+            setTimeout(() => {
+                console.log('✅ Form submission test completed');
+                console.log('🎯 Check if you see this message in console');
+            }, 1000);
+        }
+
+        // Auto-run test
+        testFormSubmission();
+    </script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,1 @@
+export { TournamentDetails } from '../components/tournament/TournamentDetails';
