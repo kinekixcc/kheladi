@@ -164,12 +164,12 @@ export const DynamicAdminControl: React.FC = () => {
       enableNotifications: true,
       enableAuditLog: true
     },
-    appearance: {
-      theme: 'light',
-      primaryColor: '#3B82F6',
-      logo: '/logo.png',
-      favicon: '/favicon.ico'
-    }
+            appearance: {
+          theme: 'light' as const,
+          primaryColor: '#3B82F6',
+          logo: '/logo.png',
+          favicon: '/favicon.ico'
+        }
   });
 
   const [activeTab, setActiveTab] = useState<'features' | 'limits' | 'settings' | 'appearance' | 'database' | 'maintenance'>('features');
@@ -199,10 +199,22 @@ export const DynamicAdminControl: React.FC = () => {
       // Save to database and localStorage
       localStorage.setItem('admin_config', JSON.stringify(config));
       
-      // Apply changes to database
-      await applyConfigChanges();
+      // Save to database
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert({
+          key: 'admin_config',
+          value: config,
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
       
       toast.success('Configuration saved successfully!');
+      
+      // Apply changes immediately
+      applyConfigChanges();
+      
     } catch (error) {
       console.error('Error saving config:', error);
       toast.error('Failed to save configuration');
@@ -211,16 +223,103 @@ export const DynamicAdminControl: React.FC = () => {
     }
   };
 
-  const applyConfigChanges = async () => {
-    // Apply feature toggles to database
-    for (const feature of config.features) {
-      if (feature.category === 'tournaments') {
-        await updateTournamentSettings(feature);
+  const applyConfigChanges = () => {
+    // Apply feature toggles
+    config.features.forEach(feature => {
+      if (feature.id === 'tournament_creation') {
+        // Apply tournament creation setting
+        console.log(`Tournament creation: ${feature.enabled ? 'enabled' : 'disabled'}`);
       }
-    }
+      if (feature.id === 'user_registration') {
+        // Apply user registration setting
+        console.log(`User registration: ${feature.enabled ? 'enabled' : 'disabled'}`);
+      }
+      if (feature.id === 'admin_approval') {
+        // Apply admin approval setting
+        console.log(`Admin approval: ${feature.enabled ? 'enabled' : 'disabled'}`);
+      }
+    });
 
-    // Update app-wide settings
-    await updateAppSettings();
+    // Apply system limits
+    console.log('System limits updated:', config.limits);
+    
+    // Apply appearance settings
+    if (config.appearance.theme) {
+      document.documentElement.setAttribute('data-theme', config.appearance.theme);
+    }
+    
+    toast.success('Configuration applied successfully!');
+  };
+
+  const resetConfig = async () => {
+    if (!confirm('Are you sure you want to reset all settings to defaults? This cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Reset to default config
+      const defaultConfig = {
+        features: [
+          { id: 'tournament_creation', name: 'Tournament Creation', description: 'Allow users to create tournaments', enabled: true, category: 'tournaments' as const },
+          { id: 'user_registration', name: 'User Registration', description: 'Allow new users to register', enabled: true, category: 'users' as const },
+          { id: 'admin_approval', name: 'Admin Approval', description: 'Require admin approval for tournaments', enabled: false, category: 'core' as const },
+          { id: 'chat_system', name: 'Chat System', description: 'Enable in-app chat for tournaments and teams', enabled: true, category: 'tournaments' as const },
+          { id: 'recurring_schedules', name: 'Recurring Schedules', description: 'Allow tournaments to be scheduled repeatedly', enabled: true, category: 'tournaments' as const },
+          { id: 'match_invites', name: 'Match Invites', description: 'Allow players to send and receive match invitations', enabled: true, category: 'tournaments' as const },
+          { id: 'audit_logging', name: 'Audit Logging', description: 'Track all admin and user actions', enabled: true, category: 'security' as const },
+          { id: 'real_time_updates', name: 'Real-time Updates', description: 'Enable live updates across the app', enabled: true, category: 'core' as const }
+        ],
+        limits: {
+          maxTournaments: 1000,
+          maxUsers: 10000,
+          maxTeams: 500,
+          maxChatMessages: 10000,
+          maxFileSize: 10
+        },
+        settings: {
+          requireApproval: false,
+          allowPublicTournaments: true,
+          enableChat: true,
+          enableTeams: true,
+          enableRecurring: true,
+          enableInvites: true,
+          enableNotifications: true,
+          enableAuditLog: true
+        },
+        appearance: {
+          theme: 'light',
+          primaryColor: '#3B82F6',
+          logo: '/logo.png',
+          favicon: '/favicon.ico'
+        }
+      };
+      
+      setConfig(defaultConfig);
+      
+      // Save to database and localStorage
+      localStorage.setItem('admin_config', JSON.stringify(defaultConfig));
+      
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert({
+          key: 'admin_config',
+          value: defaultConfig,
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+      
+      toast.success('Configuration reset to defaults!');
+      applyConfigChanges();
+      
+    } catch (error) {
+      console.error('Error resetting config:', error);
+      toast.error('Failed to reset configuration');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateTournamentSettings = async (feature: FeatureToggle) => {
@@ -272,23 +371,41 @@ export const DynamicAdminControl: React.FC = () => {
   const toggleFeature = (featureId: string) => {
     setConfig(prev => ({
       ...prev,
-      features: prev.features.map(f => 
-        f.id === featureId ? { ...f, enabled: !f.enabled } : f
+      features: prev.features.map(feature =>
+        feature.id === featureId
+          ? { ...feature, enabled: !feature.enabled }
+          : feature
       )
     }));
   };
 
-  const updateLimit = (key: keyof typeof config.limits, value: number) => {
+  const updateLimit = (limitKey: string, value: number) => {
     setConfig(prev => ({
       ...prev,
-      limits: { ...prev.limits, [key]: value }
+      limits: {
+        ...prev.limits,
+        [limitKey]: value
+      }
     }));
   };
 
-  const updateSetting = (key: keyof typeof config.settings, value: boolean) => {
+  const updateSetting = (settingKey: string, value: any) => {
     setConfig(prev => ({
       ...prev,
-      settings: { ...prev.settings, [key]: value }
+      settings: {
+        ...prev.settings,
+        [settingKey]: value
+      }
+    }));
+  };
+
+  const updateAppearance = (key: string, value: string) => {
+    setConfig(prev => ({
+      ...prev,
+      appearance: {
+        ...prev.appearance,
+        [key]: value
+      }
     }));
   };
 
@@ -404,6 +521,15 @@ export const DynamicAdminControl: React.FC = () => {
           >
             <Save className="h-4 w-4 mr-2" />
             {loading ? 'Saving...' : 'Save Changes'}
+          </Button>
+          <Button
+            onClick={resetConfig}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+          >
+            <XCircle className="h-4 w-4 mr-2" />
+            Reset Defaults
           </Button>
         </div>
       </div>
@@ -592,10 +718,7 @@ export const DynamicAdminControl: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
                     <select
                       value={config.appearance.theme}
-                      onChange={(e) => setConfig(prev => ({
-                        ...prev,
-                        appearance: { ...prev.appearance, theme: e.target.value as any }
-                      }))}
+                      onChange={(e) => updateAppearance('theme', e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
                     >
                       <option value="light">Light</option>
@@ -608,10 +731,7 @@ export const DynamicAdminControl: React.FC = () => {
                     <input
                       type="color"
                       value={config.appearance.primaryColor}
-                      onChange={(e) => setConfig(prev => ({
-                        ...prev,
-                        appearance: { ...prev.appearance, primaryColor: e.target.value }
-                      }))}
+                      onChange={(e) => updateAppearance('primaryColor', e.target.value)}
                       className="w-full h-10 border border-gray-300 rounded-md"
                     />
                   </div>

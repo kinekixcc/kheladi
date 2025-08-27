@@ -547,6 +547,34 @@ export interface TournamentCommission {
   updated_at: string;
 }
 
+// Enriched interfaces for display purposes
+export interface EnrichedTournamentCommission extends TournamentCommission {
+  tournament?: {
+    id: string;
+    name: string;
+    entry_fee: number;
+    max_participants: number;
+    status: string;
+  } | null;
+  organizer?: {
+    id: string;
+    full_name: string;
+  } | null;
+}
+
+export interface EnrichedPlayerRegistrationFee extends PlayerRegistrationFee {
+  tournament?: {
+    id: string;
+    name: string;
+    entry_fee: number;
+    status: string;
+  } | null;
+  player?: {
+    id: string;
+    full_name: string;
+  } | null;
+}
+
 export interface PlayerRegistrationFee {
   id: string;
   tournament_id: string;

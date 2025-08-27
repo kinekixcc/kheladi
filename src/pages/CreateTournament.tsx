@@ -27,7 +27,7 @@ import L from 'leaflet';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { tournamentService } from '../lib/database';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { auditLogService } from '../lib/auditLog';
 import { validateTournamentData, sanitizeInput } from '../utils/dataValidation';
 import { Button } from '../components/ui/Button';
@@ -55,7 +55,6 @@ const tournamentSchema = z.object({
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().min(1, 'End date is required'),
   registration_deadline: z.string().min(1, 'Registration deadline is required'),
-  max_participants: z.number().min(2, 'Minimum 2 participants required').max(1000, 'Maximum 1000 participants allowed'),
   entry_fee: z.number().min(0, 'Entry fee cannot be negative'),
   prize_pool: z.number().min(0, 'Prize pool cannot be negative'),
   venue_name: z.string().min(1, 'Venue name is required'),
@@ -68,11 +67,12 @@ const tournamentSchema = z.object({
   contact_email: z.string().email('Please enter a valid email address'),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
+  // Team Registration Settings
+  max_teams: z.number().min(1).default(16),
+  
   // New Playo.co fields
   requires_approval: z.boolean().default(true), // Admin approval is mandatory
   is_recurring: z.boolean().default(false),
-  max_teams: z.number().min(2).default(16), // Default to same as max_participants
-  team_size: z.number().min(1).default(1),
   allow_individual_players: z.boolean().default(true),
   chat_enabled: z.boolean().default(true),
   visibility: z.enum(['public', 'private', 'invite_only']).default('public'),
@@ -140,23 +140,20 @@ export const CreateTournament: React.FC = () => {
     defaultValues: {
       entry_fee: 0,
       prize_pool: 0,
-      max_participants: 16,
       tournament_type: 'single_elimination',
       requires_approval: true, // Admin approval is mandatory
       is_recurring: false,
-      team_size: 1,
+      max_teams: 16,
       allow_individual_players: true,
       chat_enabled: true,
       visibility: 'public',
       tags: [],
-      recurrence_interval: 1,
-      max_teams: 16 // Default to same as max_participants
+      recurrence_interval: 1
     }
   });
 
   const selectedProvince = watch('province');
   const entryFee = watch('entry_fee') || 0;
-  const maxParticipants = watch('max_participants') || 0;
   const isRecurring = watch('is_recurring');
   const recurrenceType = watch('recurrence_type');
   const requiresApproval = watch('requires_approval');
@@ -299,7 +296,7 @@ export const CreateTournament: React.FC = () => {
         throw new Error('Supabase not connected. Please connect to Supabase first to create tournaments that can be shared with everyone.');
       }
       
-      console.log('🔄 Creating tournament with data:', data);
+      console.log('🔄 Preparing tournament data for commission payment...');
       
       // Validate required fields
       if (!data.name || !data.sport_type || !data.venue_name) {
@@ -318,7 +315,27 @@ export const CreateTournament: React.FC = () => {
         venue_name: sanitizeInput(data.venue_name),
         venue_address: sanitizeInput(data.venue_address),
         rules: sanitizeInput(data.rules),
-        requirements: sanitizeInput(data.requirements)
+        requirements: sanitizeInput(data.requirements),
+        // Add missing required fields
+        tournament_type: data.tournament_type || 'single_elimination',
+        entry_fee: data.entry_fee || 0,
+        prize_pool: data.prize_pool || 0,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        registration_deadline: data.registration_deadline,
+        province: data.province,
+        district: data.district,
+        contact_phone: data.contact_phone,
+        contact_email: data.contact_email,
+        // Team registration settings
+        max_teams: data.max_teams || 16,
+        // Optional fields
+        requires_approval: data.requires_approval !== undefined ? data.requires_approval : true,
+        is_recurring: data.is_recurring || false,
+        allow_individual_players: data.allow_individual_players !== undefined ? data.allow_individual_players : true,
+        chat_enabled: data.chat_enabled !== undefined ? data.chat_enabled : true,
+        visibility: data.visibility || 'public',
+        tags: selectedTags || []
       };
       
       validateTournamentData(sanitizedData);
@@ -352,54 +369,107 @@ export const CreateTournament: React.FC = () => {
       let processedPdfUrl: string | null = null;
 
       try {
-        // Handle image uploads - store as base64 to avoid storage issues
+        // Handle image uploads - upload to Supabase storage
         if (selectedImages.length > 0) {
-          console.log('📸 Processing images as base64...');
-          const imageResults = await Promise.all(
-            selectedImages.map(async (image) => {
-              return new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = () => reject(new Error('Failed to process image'));
-                reader.readAsDataURL(image);
-              });
-            })
+          console.log('📸 Starting image upload process...');
+          console.log('📸 Number of images to upload:', selectedImages.length);
+          console.log('📸 Image details:', selectedImages.map(img => ({ name: img.name, size: img.size, type: img.type })));
+          
+          // Storage connection test bypassed - proceed directly to file upload
+          console.log('🚀 Skipping storage connection test - proceeding directly to file upload...');
+          
+          console.log('📸 Uploading images to Supabase storage...');
+          
+          // Add timeout to prevent hanging uploads
+          const uploadTimeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Image upload timeout - please try again')), 60000)
           );
-          processedImageUrls = imageResults;
-          console.log('✅ Images processed as base64:', processedImageUrls.length);
+          
+          console.log('🚀 Calling uploadMultipleImages...');
+          const uploadPromise = imageUploadService.uploadMultipleImages(selectedImages, 'tournament-images');
+          const imageResults = await Promise.race([uploadPromise, uploadTimeoutPromise]) as any;
+          
+          console.log('📸 Upload results:', imageResults);
+          
+          const successfulUploads = imageResults.filter((result: any) => result.success);
+          const failedUploads = imageResults.filter((result: any) => !result.success);
+          
+          if (successfulUploads.length > 0) {
+            processedImageUrls = successfulUploads.map((result: any) => result.url).filter(Boolean);
+            console.log('✅ Images uploaded successfully:', processedImageUrls.length);
+            console.log('✅ Image URLs:', processedImageUrls);
+          }
+          
+          if (failedUploads.length > 0) {
+            console.error('❌ Failed uploads:', failedUploads);
+            failedUploads.forEach((result: any, index: number) => {
+              console.error(`❌ Failed upload ${index + 1}:`, result.error);
+            });
+            toast.error(`${failedUploads.length} images failed to upload`);
+            setLoading(false);
+            return;
+          }
+        } else {
+          console.log('📸 No images selected for upload');
         }
 
-        // Handle PDF upload - for now, convert to base64 since uploadPDF doesn't exist
+        // Handle PDF upload - upload to Supabase storage
         if (selectedPDF) {
-          console.log('📄 Processing PDF...');
-          processedPdfUrl = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () => reject(new Error('Failed to process PDF'));
-            reader.readAsDataURL(selectedPDF);
-          });
-          console.log('✅ PDF processed:', processedPdfUrl);
+          console.log('📄 Uploading PDF to Supabase storage...');
+          
+          console.log('🚀 Calling uploadImage for PDF...');
+          const pdfResult = await imageUploadService.uploadImage(selectedPDF, 'payment-proofs');
+          
+          if (pdfResult.success && pdfResult.url) {
+            processedPdfUrl = pdfResult.url;
+            console.log('✅ PDF uploaded successfully');
+          } else {
+            throw new Error(pdfResult.error || 'PDF upload failed');
+          }
         }
-      } catch (uploadError) {
+      } catch (uploadError: any) {
         console.error('File upload error:', uploadError);
-        toast.error('Failed to upload files. Please try again.');
-        setLoading(false);
-        return;
+        
+        if (uploadError.message.includes('timed out')) {
+          toast.error('Storage connection timed out. Please check your Supabase configuration.');
+        } else if (uploadError.message.includes('Storage connection failed')) {
+          toast.error('Storage connection failed. Please check your Supabase configuration.');
+        } else {
+          toast.error('Failed to upload files. Please try again.');
+        }
+        
+        // Ask user if they want to continue without file uploads
+        const continueWithoutFiles = window.confirm(
+          'File upload failed. Would you like to continue creating the tournament without images and PDF? You can add them later.'
+        );
+        
+        if (continueWithoutFiles) {
+          console.log('📝 Continuing without file uploads...');
+          processedImageUrls = [];
+          processedPdfUrl = null;
+        } else {
+          setLoading(false);
+          return;
+        }
       }
 
-      // Calculate commission (10% of entry fee * max participants)
-      const commissionPercentage = 10; // 10% commission
-      const totalEntryFees = sanitizedData.entry_fee * sanitizedData.max_participants;
+      // Calculate commission based on max teams (simplified for now)
+      const commissionPercentage = 5; // 5% commission as defined in types
+      
+      // For now, calculate as per team since entry_fee_type is not in database
+      const totalEntryFees = sanitizedData.entry_fee * sanitizedData.max_teams;
+      
       const commissionAmount = (totalEntryFees * commissionPercentage) / 100;
+      const organizerEarnings = totalEntryFees - commissionAmount;
 
-      // Prepare tournament data
+      // Prepare tournament data for storage
       const tournamentData = {
         name: sanitizedData.name,
         description: sanitizedData.description,
         sport_type: sanitizedData.sport_type,
         tournament_type: sanitizedData.tournament_type,
         organizer_id: user?.id || '',
-        organizer_name: user?.full_name || 'Unknown Organizer',
+        organizer_name: user?.full_name || user?.email?.split('@')[0] || 'Unknown Organizer',
         facility_id: '', // Empty string instead of null
         facility_name: sanitizedData.venue_name,
         venue_name: sanitizedData.venue_name,
@@ -409,7 +479,6 @@ export const CreateTournament: React.FC = () => {
         start_date: sanitizedData.start_date,
         end_date: sanitizedData.end_date,
         registration_deadline: sanitizedData.registration_deadline,
-        max_participants: sanitizedData.max_participants,
         entry_fee: sanitizedData.entry_fee,
         prize_pool: sanitizedData.prize_pool,
         rules: sanitizedData.rules,
@@ -424,8 +493,7 @@ export const CreateTournament: React.FC = () => {
         // New Playo.co fields
         requires_approval: sanitizedData.requires_approval,
         is_recurring: sanitizedData.is_recurring,
-        max_teams: sanitizedData.max_participants, // Set to same as max_participants
-        team_size: sanitizedData.team_size,
+        max_teams: sanitizedData.max_teams,
         allow_individual_players: sanitizedData.allow_individual_players,
         chat_enabled: sanitizedData.chat_enabled,
         visibility: sanitizedData.visibility,
@@ -434,52 +502,21 @@ export const CreateTournament: React.FC = () => {
         status: (sanitizedData.requires_approval ? 'pending_approval' : 'active') as 'pending_approval' | 'active'
       };
 
-      console.log('📝 Tournament data prepared:', tournamentData);
-      
-      // Add timeout protection for database operations
-      const createTournamentWithTimeout = () => {
-        return Promise.race([
-          tournamentService.createTournament(tournamentData),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Tournament creation timed out after 30 seconds')), 30000)
-          )
-        ]);
+      console.log('📝 Tournament data prepared for commission payment');
+
+      // Store tournament data and commission info in localStorage for payment page
+      const commissionData = {
+        tournament_name: sanitizedData.name,
+        entry_fee: sanitizedData.entry_fee,
+        total_revenue: totalEntryFees,
+        commission_percentage: commissionPercentage,
+        commission_amount: commissionAmount,
+        organizer_earnings: organizerEarnings,
+        organizer_name: user?.full_name || user?.email?.split('@')[0] || 'Unknown Organizer',
+        tournament_data: tournamentData
       };
 
-      // Create tournament in Supabase with timeout protection
-      console.log('🚀 Submitting tournament to database...');
-      const createdTournament = await createTournamentWithTimeout();
-      console.log('✅ Tournament created successfully in Supabase:', createdTournament);
-      
-      // Create commission record for payment
-      if (commissionAmount > 0) {
-        try {
-          const { paymentService } = await import('../lib/paymentService');
-          await paymentService.createTournamentCommission({
-            tournament_id: createdTournament.id,
-            organizer_id: user?.id || '',
-            commission_amount: commissionAmount,
-            commission_percentage: commissionPercentage,
-            total_amount: totalEntryFees
-          });
-          console.log('💰 Commission record created');
-        } catch (commissionError) {
-          console.error('Failed to create commission record:', commissionError);
-          // Don't fail the tournament creation for commission issues
-        }
-      }
-      
-      // Add notification for admin if approval is required
-      if (sanitizedData.requires_approval) {
-        await notificationService.createTournamentSubmissionNotification(
-          createdTournament.id,
-          createdTournament.name,
-          createdTournament.organizer_name
-        );
-        toast.success('Tournament created successfully! Awaiting admin approval.');
-      } else {
-        toast.success('Tournament created successfully! It is now live and players can join.');
-      }
+      localStorage.setItem('pending_tournament_commission', JSON.stringify(commissionData));
       
       // Clear form data
       setSelectedImages([]);
@@ -487,21 +524,20 @@ export const CreateTournament: React.FC = () => {
       setImagePreview([]);
       setSelectedTags([]);
       
-      navigate('/organizer-dashboard');
+      // Redirect to commission payment page
+      toast.success('Tournament details prepared! Please complete the commission payment to activate your tournament.');
+      navigate('/tournament-commission-payment');
+      
     } catch (error) {
-      console.error('Tournament creation error:', error);
+      console.error('Tournament preparation error:', error);
       
       if (error instanceof Error) {
         if (error.message.includes('Supabase not connected')) {
-        toast.error('Please connect to Supabase first. Click "Connect to Supabase" in the top right corner.');
-        } else if (error.message.includes('timed out')) {
-          toast.error('Tournament creation is taking longer than expected. Please try again or contact support.');
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          toast.error('Network error. Please check your connection and try again.');
+          toast.error('Please connect to Supabase first. Click "Connect to Supabase" in the top right corner.');
         } else if (error.message.includes('validation')) {
           toast.error(`Validation error: ${error.message}`);
         } else {
-          toast.error(`Failed to create tournament: ${error.message}`);
+          toast.error(`Failed to prepare tournament: ${error.message}`);
         }
       } else {
         toast.error('An unexpected error occurred. Please try again.');
@@ -529,7 +565,7 @@ export const CreateTournament: React.FC = () => {
             Back to Dashboard
           </Button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Tournament</h1>
-          <p className="text-gray-600">Fill out all the details to create your tournament</p>
+          <p className="text-gray-600">Fill out all the details and pay the platform commission to activate your tournament</p>
         </motion.div>
 
         {/* Single Page Form */}
@@ -708,22 +744,6 @@ export const CreateTournament: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Participants *
-                    </label>
-                    <input
-                      type="number"
-                      {...register('max_participants', { valueAsNumber: true })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      min="2"
-                      max="1000"
-                    />
-                    {errors.max_participants && (
-                      <p className="mt-1 text-sm text-red-600">{errors.max_participants.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Entry Fee (रू)
                     </label>
                     <input
@@ -750,6 +770,114 @@ export const CreateTournament: React.FC = () => {
                     {errors.prize_pool && (
                       <p className="mt-1 text-sm text-red-600">{errors.prize_pool.message}</p>
                     )}
+                  </div>
+                </div>
+
+                {/* Team Registration Settings */}
+                <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    Team Registration Settings
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Registration Mode *
+                      </label>
+                      <select
+                        {...register('registration_mode')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="individual">Individual Players Only</option>
+                        <option value="team">Teams Only</option>
+                        <option value="hybrid">Both Individual & Teams</option>
+                      </select>
+                      {errors.registration_mode && (
+                        <p className="mt-1 text-sm text-red-600">{errors.registration_mode.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Entry Fee Type *
+                      </label>
+                      <select
+                        {...register('entry_fee_type')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="per_player">Per Player</option>
+                        <option value="per_team">Per Team</option>
+                      </select>
+                      {errors.entry_fee_type && (
+                        <p className="mt-1 text-sm text-red-600">{errors.entry_fee_type.message}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Max Teams *
+                      </label>
+                      <input
+                        type="number"
+                        {...register('max_teams', { valueAsNumber: true })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min="1"
+                        max="100"
+                        placeholder="Enter max number of teams"
+                      />
+                      {errors.max_teams && (
+                        <p className="mt-1 text-sm text-red-600">{errors.max_teams.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Min Team Size
+                      </label>
+                      <input
+                        type="number"
+                        {...register('team_size_min', { valueAsNumber: true })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min="1"
+                        max="50"
+                      />
+                      {errors.team_size_min && (
+                        <p className="mt-1 text-sm text-red-600">{errors.team_size_min.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Max Team Size
+                      </label>
+                      <input
+                        type="number"
+                        {...register('team_size_max', { valueAsNumber: true })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min="1"
+                        max="50"
+                      />
+                      {errors.team_size_max && (
+                        <p className="mt-1 text-sm text-red-600">{errors.team_size_max.message}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-blue-700 bg-blue-100 p-3 rounded-lg">
+                    <p><strong>Registration Mode:</strong></p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li><strong>Individual:</strong> Players register one by one</li>
+                      <li><strong>Team:</strong> Only teams can register (captains pay for entire team)</li>
+                      <li><strong>Hybrid:</strong> Both individual players and teams can register</li>
+                    </ul>
+                    <p className="mt-2"><strong>Entry Fee Type:</strong></p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li><strong>Per Player:</strong> Each player pays the entry fee</li>
+                      <li><strong>Per Team:</strong> Team captain pays one fee for the entire team</li>
+                    </ul>
                   </div>
                 </div>
 
@@ -1126,49 +1254,6 @@ export const CreateTournament: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Team Settings */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Max Teams (Auto-calculated)
-                      </label>
-                      <input
-                        type="number"
-                        {...register('max_teams', { valueAsNumber: true })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-                        min="2"
-                        max="100"
-                        value={maxParticipants}
-                        readOnly
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Automatically set to match max participants</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Team Size
-                      </label>
-                      <input
-                        type="number"
-                        {...register('team_size', { valueAsNumber: true })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        min="1"
-                      />
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        id="allow_individual_players"
-                        {...register('allow_individual_players')}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="allow_individual_players" className="text-sm font-medium text-gray-700">
-                        Allow individual players (no team required)
-                      </label>
-                    </div>
-                  </div>
-
                   {/* Recurring Schedule */}
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
@@ -1370,9 +1455,17 @@ export const CreateTournament: React.FC = () => {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Projection</h3>
                   <PlatformFeeCalculator
                     entryFee={entryFee}
-                    participants={maxParticipants}
-                    isPremiumListing={isPremiumListing}
+                    maxTeams={watch('max_teams') || 0}
+                    teamSizeMax={watch('team_size_max') || 1}
+                    entryFeeType={watch('entry_fee_type') || 'per_player'}
+                    registrationMode={watch('registration_mode') || 'hybrid'}
                   />
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Note:</strong> A 5% platform commission will be charged when you create this tournament. 
+                      You'll be redirected to the payment page after form submission.
+                    </p>
+                  </div>
                 </div>
                 
                 {/* Submit Section */}
@@ -1395,7 +1488,7 @@ export const CreateTournament: React.FC = () => {
                     size="lg"
                     className="w-full"
                   >
-                    {loading ? 'Creating Tournament...' : 'Create Tournament'}
+                    {loading ? 'Preparing Tournament...' : 'Continue to Payment'}
                   </Button>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Users, Trophy, Settings, BarChart3, Shield, AlertTriangle, CheckCircle, XCircle, Award, DollarSign, MapPin } from 'lucide-react';
+import { Users, Trophy, Settings, BarChart3, Shield, AlertTriangle, CheckCircle, XCircle, Award, DollarSign, MapPin, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { tournamentService, profileService, notificationService } from '../lib/database';
 import { realtimeManager } from '../lib/realtime';
@@ -10,23 +10,36 @@ import { GlobalConnectivityMonitor } from '../components/admin/GlobalConnectivit
 import { AdminTournamentManagement } from '../components/admin/AdminTournamentManagement';
 import { RealTimeAnalytics } from '../components/analytics/RealTimeAnalytics';
 import { DynamicAdminControl } from '../components/admin/DynamicAdminControl';
-import { RevenueTestingSystem } from '../components/monetization/RevenueTestingSystem';
+import { RevenueDashboard } from '../components/admin/RevenueDashboard';
 import { ScalableOrganizerManagement } from '../components/admin/ScalableOrganizerManagement';
 import { OrganizerBadgeSystem } from '../components/admin/OrganizerBadgeSystem';
 import { VenueManagement } from '../components/admin/VenueManagement';
 import { VenueWorkflowManagement } from '../components/admin/VenueWorkflowManagement';
 import { AddVenueForm } from '../components/admin/AddVenueForm';
+import { TestDataPanel } from '../components/admin/TestDataPanel';
+import { RefundManagement } from '../components/admin/RefundManagement';
+import { AdminSidebar } from '../components/admin/AdminSidebar';
+import { AdminBreadcrumb } from '../components/admin/AdminBreadcrumb';
 import { auditLogService } from '../lib/auditLog';
+import { showTestFeatures } from '../config/environment';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { StorageTest } from '../components/ui/StorageTest';
+import { DatabaseStatusChecker } from '../components/admin/DatabaseStatusChecker';
+import { QuickDatabaseTest } from '../components/admin/QuickDatabaseTest';
+import { DatabaseTableChecker } from '../components/admin/DatabaseTableChecker';
+import { StorageConnectionTest } from '../components/ui/StorageConnectionTest';
+import { QuickSupabaseCheck } from '../components/ui/QuickSupabaseCheck';
 
 export const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'tournaments' | 'organizers' | 'analytics' | 'revenue' | 'control' | 'connectivity' | 'settings' | 'badges' | 'venues'>(() => {
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'tournaments' | 'organizers' | 'analytics' | 'revenue' | 'control' | 'connectivity' | 'settings' | 'badges' | 'venues' | 'refunds' | 'database'>(() => {
     const saved = localStorage.getItem('adminSelectedTab');
     return (saved as any) || 'venues';
   });
   const [showAddVenueForm, setShowAddVenueForm] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
   // Debug: Log tab changes and persist to localStorage
   useEffect(() => {
@@ -94,7 +107,7 @@ export const AdminDashboard: React.FC = () => {
       console.log('🔄 ADMIN DASHBOARD: Loading comprehensive data...');
       
       const [tournamentsData, usersData] = await Promise.all([
-        tournamentService.getAllTournaments(),
+        tournamentService.getAllTournamentsForAdmin(),
         profileService.getAllProfiles()
       ]);
       
@@ -108,6 +121,14 @@ export const AdminDashboard: React.FC = () => {
         active: tournamentsData.filter(t => t.status === 'active').length,
         cancelled: tournamentsData.filter(t => t.status === 'cancelled').length
       });
+      
+      // Debug: Log individual tournament statuses
+      console.log('🔍 Individual tournament statuses:', tournamentsData.map(t => ({
+        id: t.id,
+        name: t.name,
+        status: t.status,
+        requires_approval: t.requires_approval
+      })));
       console.log('👥 User data loaded:', {
         total: usersData.length,
         admins: usersData.filter(u => u.role === 'admin').length,
@@ -227,82 +248,96 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Admin Dashboard
-              </h1>
-              <p className="text-gray-600">
-                Welcome back, {user?.full_name}! Manage tournaments and users
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              <span className="text-sm text-orange-600 font-medium">
-                {pendingCount > 0 ? `${pendingCount} tournaments awaiting approval` : 'No pending tournaments'}
-              </span>
-            </div>
-          </div>
-        </motion.div>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <AdminSidebar
+        selectedTab={selectedTab}
+        onTabChange={handleTabChange}
+        pendingCount={pendingCount}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        isMobile={isMobile}
+      />
 
-        {/* Navigation Tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              {[
-                { id: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" /> },
-                { id: 'tournaments', label: 'Tournaments', icon: <Trophy className="h-4 w-4" /> },
-                { id: 'venues', label: 'Venues', icon: <MapPin className="h-4 w-4" /> },
-                { id: 'organizers', label: 'Organizers', icon: <Users className="h-4 w-4" /> },
-                { id: 'control', label: 'Control Center', icon: <Settings className="h-4 w-4" /> },
-                { id: 'analytics', label: 'Real-Time Analytics', icon: <BarChart3 className="h-4 w-4" /> },
-                { id: 'revenue', label: 'Revenue Testing', icon: <DollarSign className="h-4 w-4" /> },
-                { id: 'connectivity', label: 'Global Monitor', icon: <Shield className="h-4 w-4" /> },
-                { id: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
-                { id: 'badges', label: 'Organizer Badges', icon: <Award className="h-4 w-4" /> }
-              ].map((tab) => (
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-6">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                {/* Mobile Menu Button */}
                 <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                    selectedTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                  className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Toggle menu"
                 >
-                  {tab.icon}
-                  <span>{tab.label}</span>
-                  {tab.id === 'tournaments' && pendingCount > 0 && (
-                    <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                      {pendingCount}
-                    </span>
-                  )}
+                  <Menu className="h-6 w-6 text-gray-600" />
                 </button>
-              ))}
-            </nav>
-          </div>
-        </motion.div>
+                
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Admin Dashboard
+                  </h1>
+                  <p className="text-gray-600">
+                    Welcome back, {user?.full_name}! Manage tournaments and users
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <AlertTriangle className="h-5 w-5 text-orange-500" />
+                <span className="text-sm text-orange-600 font-medium">
+                  {pendingCount > 0 ? `${pendingCount} tournaments awaiting approval` : 'No pending tournaments'}
+                </span>
+              </div>
+            </div>
+          </motion.div>
 
-        {/* Tab Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          {selectedTab === 'overview' && (
+          {/* Breadcrumb */}
+          <AdminBreadcrumb currentTab={selectedTab} />
+
+          {/* Pending Tournaments Alert */}
+          {pendingCount > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mb-6"
+            >
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <AlertTriangle className="h-5 w-5 text-orange-500 mr-3" />
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-orange-800">
+                      {pendingCount} Tournament{pendingCount === 1 ? '' : 's'} Awaiting Approval
+                    </h3>
+                    <p className="text-sm text-orange-700 mt-1">
+                      New tournaments have been submitted and require your review. Click on "Tournaments" in the sidebar to review and approve them.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedTab('tournaments')}
+                    className="bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-700 transition-colors"
+                  >
+                    Review Now
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Tab Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-6"
+          >
+            {selectedTab === 'overview' && (
             <div className="space-y-8">
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -368,6 +403,15 @@ export const AdminDashboard: React.FC = () => {
                   )}
                 </div>
               </Card>
+
+              {/* Test Data Panel - Only shown in development */}
+              {showTestFeatures && <TestDataPanel />}
+
+              {/* Storage Test Component */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">🔧 Storage Configuration Test</h3>
+                <StorageTest />
+              </Card>
             </div>
           )}
 
@@ -395,7 +439,7 @@ export const AdminDashboard: React.FC = () => {
           )}
 
           {selectedTab === 'revenue' && (
-            <RevenueTestingSystem />
+            <RevenueDashboard />
           )}
 
           {selectedTab === 'connectivity' && (
@@ -435,22 +479,37 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
           )}
-        </motion.div>
 
-        {/* Tournament Approval Modal */}
-        {/* Removed TournamentApprovalModal */}
+          {selectedTab === 'refunds' && (
+            <RefundManagement />
+          )}
+
+          {selectedTab === 'database' && (
+            <div className="space-y-6">
+              <QuickSupabaseCheck />
+              <DatabaseStatusChecker />
+              <QuickDatabaseTest />
+              <DatabaseTableChecker />
+              <StorageConnectionTest />
+            </div>
+          )}
+          </motion.div>
+
+          {/* Tournament Approval Modal */}
+          {/* Removed TournamentApprovalModal */}
+        </div>
+
+        {/* Add Venue Form Modal */}
+        {showAddVenueForm && (
+          <AddVenueForm
+            onClose={() => setShowAddVenueForm(false)}
+            onSuccess={() => {
+              setShowAddVenueForm(false);
+              loadAdminData(); // Refresh data after adding venue
+            }}
+          />
+        )}
       </div>
-
-      {/* Add Venue Form Modal */}
-      {showAddVenueForm && (
-        <AddVenueForm
-          onClose={() => setShowAddVenueForm(false)}
-          onSuccess={() => {
-            setShowAddVenueForm(false);
-            loadAdminData(); // Refresh data after adding venue
-          }}
-        />
-      )}
     </div>
   );
 };

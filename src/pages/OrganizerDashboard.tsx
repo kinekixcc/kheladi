@@ -7,7 +7,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { tournamentService, registrationService } from '../lib/database';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { auditLogService } from '../lib/auditLog';
-import { dummyPaymentProcessor } from '../lib/dummyPaymentSystem';
+
 import { TournamentManagement } from '../components/organizer/TournamentManagement';
 import { RevenueAnalytics } from '../components/monetization/RevenueAnalytics';
 import { EventSchedulingSystem } from '../components/organizer/EventSchedulingSystem';
@@ -217,6 +217,52 @@ export const OrganizerDashboard: React.FC = () => {
     };
   }, [userId]);
 
+  // Calculate real revenue data from tournaments and registrations
+  const calculateRealRevenueData = async (tournaments: any[], registrations: any[]) => {
+    try {
+      // Get confirmed registrations for this organizer's tournaments
+      const confirmedRegistrations = registrations.filter(reg => reg.status === 'confirmed');
+      
+      // Calculate total revenue from entry fees
+      const totalRevenue = confirmedRegistrations.reduce((sum, reg) => sum + (reg.entry_fee || 0), 0);
+      
+      // Calculate platform commission (5% as per our system)
+      const platformCommission = totalRevenue * 0.05;
+      
+      // Calculate organizer earnings (95% after platform fee)
+      const organizerEarnings = totalRevenue - platformCommission;
+      
+      // Get tournament statistics
+      const approvedTournaments = tournaments.filter(t => t.status === 'approved' || t.status === 'completed');
+      const totalParticipants = approvedTournaments.reduce((sum, t) => sum + (t.current_participants || 0), 0);
+      
+      const revenueData = {
+        totalRevenue,
+        platformCommission,
+        organizerEarnings,
+        transactionCount: confirmedRegistrations.length,
+        tournamentsHosted: approvedTournaments.length,
+        totalParticipants,
+        averageEntryFee: confirmedRegistrations.length > 0 ? totalRevenue / confirmedRegistrations.length : 0
+      };
+      
+      console.log('💰 Real revenue data calculated:', revenueData);
+      return revenueData;
+    } catch (error) {
+      console.error('Error calculating real revenue data:', error);
+      // Return zero values if calculation fails
+      return {
+        totalRevenue: 0,
+        platformCommission: 0,
+        organizerEarnings: 0,
+        transactionCount: 0,
+        tournamentsHosted: 0,
+        totalParticipants: 0,
+        averageEntryFee: 0
+      };
+    }
+  };
+
   const loadData = useCallback(async () => {
     if (!userId || !isMountedRef.current) {
       return;
@@ -284,9 +330,9 @@ export const OrganizerDashboard: React.FC = () => {
       // Batch state updates to prevent multiple re-renders
       setTournaments(tournamentsData || []);
       
-      // Load revenue data from dummy payment system
-      const paymentAnalytics = dummyPaymentProcessor.getRevenueAnalytics(userId);
-      setRevenueData(paymentAnalytics);
+      // Calculate real revenue data from tournament registrations
+      const realRevenueData = await calculateRealRevenueData(tournamentsData, registrationsData);
+      setRevenueData(realRevenueData);
       
       // Update tracking variables
       setLastRefreshTime(new Date());
@@ -347,6 +393,18 @@ export const OrganizerDashboard: React.FC = () => {
     
     return () => clearTimeout(globalTimeout);
   }, []); // Run once on mount
+
+  // Clear dummy payment data on mount to ensure real data is shown
+  useEffect(() => {
+    // Clear any existing dummy payment transactions to prevent showing fake revenue
+    try {
+      const { dummyPaymentProcessor } = require('../lib/dummyPaymentSystem');
+      dummyPaymentProcessor.clearTransactions();
+      console.log('🧹 Cleared dummy payment transactions to show real revenue data');
+    } catch (error) {
+      console.log('No dummy payment system to clear');
+    }
+  }, []);
 
   // Memoize computed values to prevent unnecessary recalculations
   const organizerTournaments = useMemo(() => tournaments, [tournaments]);
@@ -504,7 +562,7 @@ export const OrganizerDashboard: React.FC = () => {
   const rejectedTournaments = organizerTournaments.filter((t: any) => t.status === 'rejected').length;
   const totalParticipants = organizerTournaments.reduce((sum: number, t: any) => sum + (t.current_participants || 0), 0);
   
-  // Use real revenue data from dummy payment system
+  // Use real revenue data calculated from tournament registrations
   const totalRevenue = revenueData?.organizerEarnings || 0;
   const grossRevenue = revenueData?.totalRevenue || 0;
   const platformFees = revenueData?.platformCommission || 0;
@@ -623,7 +681,60 @@ export const OrganizerDashboard: React.FC = () => {
         const registration = registrations.find((reg: any) => reg.id === registrationId);
         if (!registration) return;
 
+        // Update registration status
         await registrationService.updateRegistration(registrationId, { status: 'rejected' });
+        
+        // Handle refund request creation
+        let refundMessage = '';
+        try {
+          const { paymentService } = await import('../lib/paymentService');
+          
+          // Get the payment record for this registration
+          const playerPayment = await paymentService.getPlayerPaymentByRegistration(
+            registration.tournament_id, 
+            registration.player_id
+          );
+
+          if (playerPayment) {
+            // Create refund request
+            const refundRequest = await paymentService.createRefundRequest({
+              player_id: registration.player_id,
+              tournament_id: registration.tournament_id,
+              registration_id: registration.id,
+              payment_id: playerPayment.id,
+              refund_amount: playerPayment.total_amount,
+              reason: 'Registration rejected by organizer',
+              player_explanation: 'Organizer rejected my tournament registration'
+            });
+
+            if (refundRequest) {
+              // Update refund status to indicate refund is pending
+              await paymentService.updateRefundStatus(
+                playerPayment.id,
+                'pending'
+              );
+
+              refundMessage = ` A refund request for ₹${playerPayment.total_amount} has been created. Support will contact you at psychxccc@gmail.com within 24 hours to process your refund.`;
+            }
+          }
+        } catch (refundError) {
+          console.error('Error creating refund request:', refundError);
+          refundMessage = ' There was an issue creating your refund request. Please contact support at psychxccc@gmail.com.';
+        }
+
+        // Decrease tournament participant count
+        try {
+          const { tournamentService } = await import('../lib/database');
+          const currentTournament = tournaments.find(t => t.id === registration.tournament_id);
+          
+          if (currentTournament && currentTournament.current_participants > 0) {
+            await tournamentService.updateTournament(registration.tournament_id, {
+              current_participants: currentTournament.current_participants - 1
+            });
+          }
+        } catch (countError) {
+          console.error('Error updating participant count:', countError);
+        }
         
         // Log the rejection action
         await auditLogService.logAction(
@@ -643,18 +754,27 @@ export const OrganizerDashboard: React.FC = () => {
           )
         );
 
+        // Update tournaments state to reflect participant count change
+        setTournaments(prev => 
+          prev.map(t => 
+            t.id === registration.tournament_id 
+              ? { ...t, current_participants: Math.max(0, (t.current_participants || 1) - 1) }
+              : t
+          )
+        );
+
         // Add notification for player
         addNotification({
           type: 'tournament_rejected',
-          title: 'Registration Rejected',
-          message: `Your registration for "${registration.tournaments?.name || registration.tournament_name}" has been rejected by the organizer.`,
+          title: 'Registration Rejected - Refund Request Created',
+          message: `Your registration for "${registration.tournaments?.name || registration.tournament_name}" has been rejected by the organizer.${refundMessage}`,
           userId: registration.player_id,
           tournamentId: registration.tournament_id,
           tournamentName: registration.tournaments?.name || registration.tournament_name,
           targetRole: 'player'
         });
 
-        toast.success('Participant rejected successfully!');
+        toast.success('Participant rejected and refund request created!');
       } catch (error) {
         console.error('Error rejecting participant:', error);
         toast.error('Failed to reject participant');
@@ -915,8 +1035,8 @@ export const OrganizerDashboard: React.FC = () => {
               whileHover="hover"
               className="group"
             >
-              <Card className="p-6 bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50 border-2 border-transparent hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-lg">
-                <div className="flex items-center justify-between">
+              <Card className="relative p-6 bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50 border-2 border-transparent hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-lg overflow-hidden">
+                <div className="flex items-center justify-between relative z-10">
                   <div className="flex-1">
                     <motion.p 
                       className="text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors duration-200"
@@ -942,7 +1062,7 @@ export const OrganizerDashboard: React.FC = () => {
                   </motion.div>
                 </div>
                 <motion.div
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                   initial={false}
                 />
               </Card>

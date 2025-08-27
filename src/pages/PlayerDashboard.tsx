@@ -42,6 +42,7 @@ import { Button } from '../components/ui/Button';
 import { PlayerTournamentBrowser } from '../components/player/PlayerTournamentBrowser';
 import { PlayerProfile } from '../components/player/PlayerProfile';
 import { NotificationCenter } from '../components/notifications/NotificationCenter';
+import { PlayerTeamManagement } from '../components/team/PlayerTeamManagement';
 import { ResponsiveLayout, ResponsiveGrid, ResponsiveCard, ResponsiveText } from '../components/layout/ResponsiveLayout';
 import { 
   usePerformanceMonitor, 
@@ -49,47 +50,108 @@ import {
   useNetworkStatus, 
   debounce
 } from '../utils/performanceOptimizer';
+import { Tournament } from '../types';
 
 /* ---------- Mock fallbacks (unchanged functionality) ---------- */
-const mockTournaments = [
+const mockTournaments: Tournament[] = [
   {
     id: '1',
     name: 'Summer Football Championship',
+    description: 'Annual summer football tournament for all skill levels',
     sport_type: 'Football',
+    organizer_id: 'org-1',
+    organizer_name: 'Central Sports Club',
+    facility_id: 'facility-1',
     facility_name: 'Central Sports Complex',
     start_date: '2024-06-15',
     end_date: '2024-06-20',
-    entry_fee: 1500,
-    status: 'open',
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=200&fit=crop',
-    participants: 24,
+    registration_deadline: '2024-06-10',
     max_participants: 32,
+    current_participants: 24,
+    entry_fee: 1500,
+    prize_pool: 50000,
+    rules: 'Standard football rules apply',
+    requirements: 'Age 16+, valid ID required',
+    status: 'approved',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
+    images: ['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=200&fit=crop'],
+    venue_name: 'Central Sports Complex',
+    venue_address: '123 Sports Street',
+    province: 'Bagmati',
+    district: 'Kathmandu',
+    contact_phone: '+977-1-123456',
+    contact_email: 'info@centralsports.com',
+    visibility: 'public',
+    requires_approval: false,
+    is_recurring: false,
+    chat_enabled: true,
   },
   {
     id: '2',
     name: 'Basketball Pro League',
+    description: 'Professional basketball league for experienced players',
     sport_type: 'Basketball',
+    organizer_id: 'org-2',
+    organizer_name: 'Elite Basketball Association',
+    facility_id: 'facility-2',
     facility_name: 'Elite Arena',
     start_date: '2024-06-22',
     end_date: '2024-06-25',
-    entry_fee: 2000,
-    status: 'open',
-    image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=200&fit=crop',
-    participants: 18,
+    registration_deadline: '2024-06-18',
     max_participants: 24,
+    current_participants: 18,
+    entry_fee: 2000,
+    prize_pool: 75000,
+    rules: 'FIBA rules with local modifications',
+    requirements: 'Age 18+, previous tournament experience',
+    status: 'approved',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
+    images: ['https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=200&fit=crop'],
+    venue_name: 'Elite Arena',
+    venue_address: '456 Basketball Court',
+    province: 'Bagmati',
+    district: 'Lalitpur',
+    contact_phone: '+977-1-654321',
+    contact_email: 'info@elitebasketball.com',
+    visibility: 'public',
+    requires_approval: false,
+    is_recurring: false,
+    chat_enabled: true,
   },
   {
     id: '3',
     name: 'Cricket Premier Cup',
+    description: 'Premier cricket tournament with high stakes',
     sport_type: 'Cricket',
+    organizer_id: 'org-3',
+    organizer_name: 'Nepal Cricket Board',
+    facility_id: 'facility-3',
     facility_name: 'National Stadium',
     start_date: '2024-07-01',
     end_date: '2024-07-10',
-    entry_fee: 3000,
-    status: 'closed',
-    image: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=200&fit=crop',
-    participants: 30,
+    registration_deadline: '2024-06-25',
     max_participants: 30,
+    current_participants: 30,
+    entry_fee: 3000,
+    prize_pool: 100000,
+    rules: 'ICC rules with local adaptations',
+    requirements: 'Age 18+, cricket experience required',
+    status: 'approved',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
+    images: ['https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=200&fit=crop'],
+    venue_name: 'National Stadium',
+    venue_address: '789 Cricket Ground',
+    province: 'Bagmati',
+    district: 'Kathmandu',
+    contact_phone: '+977-1-987654',
+    contact_email: 'info@nepalcricket.com',
+    visibility: 'public',
+    requires_approval: false,
+    is_recurring: false,
+    chat_enabled: true,
   },
 ];
 
@@ -328,19 +390,7 @@ export const PlayerDashboard: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [availableTournaments, setAvailableTournaments] = useState<Array<{
-    id: string;
-    name: string;
-    sport_type: string;
-    facility_name: string;
-    start_date: string;
-    end_date: string;
-    entry_fee: number;
-    status: string;
-    image?: string;
-    participants: number;
-    max_participants: number;
-  }>>([]);
+  const [availableTournaments, setAvailableTournaments] = useState<Tournament[]>([]);
 
   const [tournamentsJoined, setTournamentsJoined] = useState(0);
   const [matchesWon, setMatchesWon] = useState(0);
@@ -392,6 +442,139 @@ export const PlayerDashboard: React.FC = () => {
   // Memoized values for performance
   const userId = useMemo(() => user?.id, [user?.id]);
   
+  // Filtered tournaments based on search and filters
+  const filteredTournaments = useMemo(() => {
+    return availableTournaments.filter((tournament) => {
+      const matchesSearch = tournament.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           tournament.sport_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           tournament.facility_name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesSport = filterSport === 'all' || tournament.sport_type === filterSport;
+      
+      return matchesSearch && matchesSport;
+    }).sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'participants':
+          return b.current_participants - a.current_participants;
+        case 'date':
+        default:
+          return new Date(a.start_date).getTime() - new Date(b.start_date).getTime();
+      }
+    });
+  }, [availableTournaments, searchQuery, filterSport, sortBy]);
+  
+  // Test tournament browsing functionality
+  const testTournamentBrowsing = useCallback(() => {
+    console.log('🧪 Testing tournament browsing functionality...');
+    console.log('Available tournaments:', availableTournaments.length);
+    console.log('Filtered tournaments:', filteredTournaments.length);
+    console.log('Search query:', searchQuery);
+    console.log('Sport filter:', filterSport);
+    console.log('Sort by:', sortBy);
+    console.log('View mode:', viewMode);
+    
+    // Test if tournaments are properly displayed
+    if (availableTournaments.length > 0) {
+      console.log('✅ Tournaments loaded successfully');
+      console.log('First tournament:', availableTournaments[0]);
+    } else {
+      console.log('❌ No tournaments available');
+    }
+    
+    // Test filtering
+    if (filteredTournaments.length > 0) {
+      console.log('✅ Filtering working correctly');
+    } else {
+      console.log('⚠️ Filtering may have issues');
+    }
+  }, [availableTournaments, filteredTournaments, searchQuery, filterSport, sortBy, viewMode]);
+
+  // Comprehensive database connection test
+  const testDatabaseConnection = useCallback(async () => {
+    console.log('🔍 Testing database connection and tournament loading...');
+    
+    try {
+      // Test 1: Check if Supabase is configured
+      console.log('1️⃣ Testing Supabase configuration...');
+      const { isSupabaseConfigured } = await import('../lib/supabase');
+      console.log('Supabase configured:', isSupabaseConfigured);
+      
+      if (!isSupabaseConfigured) {
+        console.error('❌ Supabase not configured! Check environment variables.');
+        return;
+      }
+      
+      // Test 2: Test direct database connection
+      console.log('2️⃣ Testing direct database connection...');
+      const { supabase } = await import('../lib/supabase');
+      const { data: testData, error: testError } = await supabase
+        .from('tournaments')
+        .select('count')
+        .limit(1);
+      
+      if (testError) {
+        console.error('❌ Database connection failed:', testError);
+        return;
+      }
+      
+      console.log('✅ Database connection successful');
+      
+      // Test 3: Check total tournaments in database
+      console.log('3️⃣ Checking total tournaments in database...');
+      const { count: totalCount, error: countError } = await supabase
+        .from('tournaments')
+        .select('*', { count: 'exact', head: true });
+      
+      if (countError) {
+        console.error('❌ Count query failed:', countError);
+      } else {
+        console.log('📊 Total tournaments in database:', totalCount);
+      }
+      
+      // Test 4: Check public tournaments
+      console.log('4️⃣ Checking public tournaments...');
+      const { data: publicTournaments, error: publicError } = await supabase
+        .from('tournaments')
+        .select('*')
+        .eq('visibility', 'public')
+        .in('status', ['approved', 'active', 'completed']);
+      
+      if (publicError) {
+        console.error('❌ Public tournaments query failed:', publicError);
+      } else {
+        console.log('📊 Public tournaments found:', publicTournaments?.length || 0);
+        console.log('Public tournaments data:', publicTournaments);
+      }
+      
+      // Test 5: Check tournament visibility filtering
+      console.log('5️⃣ Testing tournament visibility filtering...');
+      const { tournamentUtils } = await import('../utils/tournamentUtils');
+      
+      if (publicTournaments && publicTournaments.length > 0) {
+        const visibleTournaments = publicTournaments.filter(tournament => 
+          tournamentUtils.isTournamentVisible(tournament)
+        );
+        console.log('📊 Visible tournaments after filtering:', visibleTournaments.length);
+        console.log('Tournaments filtered out:', publicTournaments.length - visibleTournaments.length);
+        
+        if (visibleTournaments.length === 0) {
+          console.log('⚠️ All tournaments filtered out by visibility rules!');
+          console.log('Visibility filter details:', publicTournaments.map(t => ({
+            id: t.id,
+            name: t.name,
+            end_date: t.end_date,
+            is_archived: t.is_archived
+          })));
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Database connection test failed:', error);
+    }
+  }, []);
+  
   const loadPlayerData = useCallback(async (showLoading = true) => {
     if (!userId) return;
 
@@ -399,21 +582,28 @@ export const PlayerDashboard: React.FC = () => {
       if (showLoading) setLoading(true);
       setError(null);
       
+      console.log('🔄 Loading player data for user:', userId);
+      
       // Load data in parallel for better performance
       const [tournaments, registrations, stats] = await Promise.allSettled([
-        tournamentService.getAvailableTournaments(),
+        tournamentService.getPublicTournaments(),
         registrationService.getPlayerRegistrations(userId),
         PlayerStatsManager.getInstance().getPlayerStats(userId)
       ]);
 
       // Handle successful responses
       if (tournaments.status === 'fulfilled') {
+        console.log('✅ Tournaments loaded successfully:', tournaments.value?.length || 0, 'tournaments');
+        console.log('📊 Tournament data:', tournaments.value);
         setAvailableTournaments(tournaments.value || []);
       } else {
-        console.warn('Failed to load tournaments:', tournaments.reason);
+        console.error('❌ Failed to load tournaments:', tournaments.reason);
+        console.error('Tournament error details:', tournaments.reason);
+        setError(`Failed to load tournaments: ${tournaments.reason?.message || 'Unknown error'}`);
       }
       
       if (registrations.status === 'fulfilled') {
+        console.log('✅ Registrations loaded successfully:', registrations.value?.length || 0, 'registrations');
         const registrationData = registrations.value || [];
         
         // Enhance registrations with tournament details
@@ -431,7 +621,7 @@ export const PlayerDashboard: React.FC = () => {
                   tournament_end_date: tournamentDetails?.end_date,
                   tournament_facility_name: tournamentDetails?.facility_name || 'Location not set',
                   tournament_entry_fee: tournamentDetails?.entry_fee || 0,
-                  tournament_image: tournamentDetails?.image,
+                  tournament_image: tournamentDetails?.images?.[0],
                   tournament_status: tournamentDetails?.status,
                   tournament_max_participants: tournamentDetails?.max_participants,
                   tournament_current_participants: tournamentDetails?.current_participants,
@@ -448,10 +638,11 @@ export const PlayerDashboard: React.FC = () => {
         setPlayerRegistrations(enhancedRegistrations);
         setTournamentsJoined(enhancedRegistrations.length || 0);
       } else {
-        console.warn('Failed to load registrations:', registrations.reason);
+        console.error('❌ Failed to load registrations:', registrations.reason);
       }
       
       if (stats.status === 'fulfilled') {
+        console.log('✅ Stats loaded successfully:', stats.value);
         const playerStats = stats.value;
         setMatchesWon(playerStats?.matchesWon || 0);
         setHoursPlayed(playerStats?.hoursPlayed || 0);
@@ -461,19 +652,24 @@ export const PlayerDashboard: React.FC = () => {
       }
 
     } catch (error) {
-      console.error('Error loading player data:', error);
-      setError('Failed to load player data. Please try again.');
-      // Fallback to mock data
-      setAvailableTournaments(mockTournaments);
-      setPlayerRegistrations(mockRegistrations);
-      setTournamentsJoined(mockRegistrations.length);
+      console.error('❌ Error loading player data:', error);
+      console.error('Error details:', error);
+      setError(`Failed to load player data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Only fallback to mock data if we have no tournaments at all
+      if (availableTournaments.length === 0) {
+        console.log('⚠️ Falling back to mock tournaments due to error');
+        setAvailableTournaments(mockTournaments);
+      }
+      
+      // Set default values for other data
       setMatchesWon(0);
       setHoursPlayed(0);
       setPlayerRating(0);
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, availableTournaments.length]);
 
   // Refresh data function
   const refreshData = useCallback(async () => {
@@ -489,29 +685,6 @@ export const PlayerDashboard: React.FC = () => {
     }, 300),
     []
   );
-
-  // Filtered tournaments based on search and filters
-  const filteredTournaments = useMemo(() => {
-    return availableTournaments.filter((tournament) => {
-      const matchesSearch = tournament.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           tournament.sport_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           tournament.facility_name.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesSport = filterSport === 'all' || tournament.sport_type === filterSport;
-      
-      return matchesSearch && matchesSport;
-    }).sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'participants':
-          return b.participants - a.participants;
-        case 'date':
-        default:
-          return new Date(a.start_date).getTime() - new Date(b.start_date).getTime();
-      }
-    });
-  }, [availableTournaments, searchQuery, filterSport, sortBy]);
 
   // Stats cards data
   const statsCards = useMemo(() => [
@@ -552,7 +725,6 @@ export const PlayerDashboard: React.FC = () => {
     { id: 'my-tournaments' as const, label: 'My Tournaments', icon: Users },
     { id: 'performance' as const, label: 'Performance', icon: TrendingUp },
     { id: 'teams' as const, label: 'Teams', icon: Users },
-    { id: 'chat' as const, label: 'Chat', icon: MessageCircle },
     { id: 'achievements' as const, label: 'Achievements', icon: Award },
     { id: 'community' as const, label: 'Community', icon: Heart },
     { id: 'profile' as const, label: 'Profile', icon: User },
@@ -580,15 +752,15 @@ export const PlayerDashboard: React.FC = () => {
   // Get tournament image function
   const getTournamentImage = useCallback((tournament: typeof availableTournaments[0]) => {
     // Check if tournament has a valid image URL
-    if (tournament.image && (
-      tournament.image.startsWith('http') || 
-      tournament.image.startsWith('/') ||
-      tournament.image.includes('.jpg') ||
-      tournament.image.includes('.jpeg') ||
-      tournament.image.includes('.png') ||
-      tournament.image.includes('.webp')
+    if (tournament.images && tournament.images.length > 0 && (
+      tournament.images[0].startsWith('http') || 
+      tournament.images[0].startsWith('/') ||
+      tournament.images[0].includes('.jpg') ||
+      tournament.images[0].includes('.jpeg') ||
+      tournament.images[0].includes('.png') ||
+      tournament.images[0].includes('.webp')
     )) {
-      return tournament.image;
+      return tournament.images[0];
     }
     
     // Fallback to sport-specific emojis
@@ -1155,48 +1327,32 @@ export const PlayerDashboard: React.FC = () => {
                     </button>
                   </div>
                   
-                  {/* Additional Quick Actions */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  {/* Test Button */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
                     <button 
-                      onClick={() => setSelectedTab('performance')}
-                      className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all group cursor-pointer"
+                      onClick={testTournamentBrowsing}
+                      className="flex items-center p-3 rounded-lg border border-orange-300 hover:border-orange-400 hover:bg-orange-50 transition-all group cursor-pointer mx-auto mb-3"
                     >
-                      <div className="w-10 h-10 bg-indigo-100 rounded-lg grid place-items-center mr-3 group-hover:bg-indigo-200 transition-colors">
-                        <TrendingUp className="h-5 w-5 text-indigo-600" />
+                      <div className="w-8 h-8 bg-orange-100 rounded-lg grid place-items-center mr-3 group-hover:bg-orange-200 transition-colors">
+                        <Settings className="h-4 w-4 text-orange-600" />
                       </div>
                       <div className="text-left">
-                        <h4 className="font-medium text-gray-900">Performance</h4>
-                        <p className="text-sm text-gray-500">View your stats</p>
+                        <h4 className="font-medium text-gray-900 text-sm">🧪 Test Tournament Browsing</h4>
+                        <p className="text-xs text-gray-500">Check console for results</p>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-indigo-600 transition-colors" />
                     </button>
-
+                    
                     <button 
-                      onClick={() => setSelectedTab('teams')}
-                      className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all group cursor-pointer"
+                      onClick={testDatabaseConnection}
+                      className="flex items-center p-3 rounded-lg border border-red-300 hover:border-red-400 hover:bg-red-50 transition-all group cursor-pointer mx-auto"
                     >
-                      <div className="w-10 h-10 bg-orange-100 rounded-lg grid place-items-center mr-3 group-hover:bg-orange-200 transition-colors">
-                        <Users className="h-5 w-5 text-orange-600" />
+                      <div className="w-8 h-8 bg-red-100 rounded-lg grid place-items-center mr-3 group-hover:bg-red-200 transition-colors">
+                        <Settings className="h-4 w-4 text-red-600" />
                       </div>
                       <div className="text-left">
-                        <h4 className="font-medium text-gray-900">My Teams</h4>
-                        <p className="text-sm text-gray-500">Manage teams</p>
+                        <h4 className="font-medium text-gray-900 text-sm">🔍 Test Database Connection</h4>
+                        <p className="text-xs text-gray-500">Deep database diagnostics</p>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-orange-600 transition-colors" />
-                    </button>
-
-                    <button 
-                      onClick={() => setSelectedTab('community')}
-                      className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-pink-300 hover:bg-pink-50 transition-all group cursor-pointer"
-                    >
-                      <div className="w-10 h-10 bg-pink-100 rounded-lg grid place-items-center mr-3 group-hover:bg-pink-200 transition-colors">
-                        <Heart className="h-5 w-5 text-pink-600" />
-                      </div>
-                      <div className="text-left">
-                        <h4 className="font-medium text-gray-900">Community</h4>
-                        <p className="text-sm text-gray-500">Connect with players</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-pink-600 transition-colors" />
                     </button>
                   </div>
                 </div>
@@ -1444,9 +1600,9 @@ export const PlayerDashboard: React.FC = () => {
                         >
                           {/* Tournament Image */}
                           <div className={`${viewMode === 'list' ? 'w-20 h-20 flex-shrink-0' : 'w-full h-32 mb-4'}`}>
-                            {tournament.image ? (
+                            {tournament.images && tournament.images.length > 0 ? (
                               <img
-                                src={tournament.image}
+                                src={tournament.images[0]}
                                 alt={tournament.name}
                                 className={`w-full h-full object-cover rounded-lg`}
                                 onError={(e) => {
@@ -1483,7 +1639,7 @@ export const PlayerDashboard: React.FC = () => {
                               
                               <div className="flex items-center">
                                 <Users className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" />
-                                <span>{tournament.participants}/{tournament.max_participants} participants</span>
+                                <span>{tournament.current_participants}/{tournament.max_participants} participants</span>
                               </div>
                               
                               <div className="flex items-center">
@@ -1495,9 +1651,10 @@ export const PlayerDashboard: React.FC = () => {
                             {/* Status Badge */}
                             <div className="mt-3">
                               <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                                tournament.status === 'open' ? 'bg-green-100 text-green-800' :
-                                tournament.status === 'closed' ? 'bg-red-100 text-red-800' :
-                                'bg-blue-100 text-blue-800'
+                                tournament.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                tournament.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                tournament.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                'bg-yellow-100 text-yellow-800'
                               }`}>
                                 {tournament.status.charAt(0).toUpperCase() + tournament.status.slice(1)}
                               </span>
@@ -1933,107 +2090,7 @@ Registration Date: ${registration.registration_date ? new Date(registration.regi
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
               >
-                {/* My Teams */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">My Teams</h3>
-                    <Button 
-                      onClick={() => setShowTeamModal(true)}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Team
-                    </Button>
-                  </div>
-                  
-                  {teams.length === 0 ? (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                      <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600 mb-3">No teams yet</p>
-                      <p className="text-sm text-gray-500">Create a team or join existing ones</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {teams.map((team) => (
-                        <div key={team.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
-                          <div className="flex items-start space-x-4">
-                            <img 
-                              src={team.image} 
-                              alt={team.name}
-                              className="w-16 h-16 rounded-lg object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                              }}
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-medium text-gray-900">{team.name}</h4>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  team.role === 'Captain' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {team.role}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">{team.sport}</p>
-                              <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                                <span>{team.members}/{team.maxMembers} members</span>
-                                <span>{team.wins}W - {team.losses}L</span>
-                              </div>
-                              {team.nextMatch && (
-                                <div className="bg-blue-50 rounded-lg p-2">
-                                  <div className="text-xs text-blue-800">Next: vs {team.nextOpponent}</div>
-                                  <div className="text-xs text-blue-600">{team.nextMatch}</div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Team Invitations */}
-                {teamInvitations.length > 0 && (
-                  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Invitations</h3>
-                    <div className="space-y-3">
-                      {teamInvitations.map((invitation) => (
-                        <div key={invitation.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900">{invitation.teamName}</h4>
-                              <p className="text-sm text-gray-600 mb-2">{invitation.sport}</p>
-                              <p className="text-sm text-gray-700 mb-2">{invitation.message}</p>
-                              <div className="flex items-center space-x-2 text-xs text-gray-500">
-                                <span>Invited by: {invitation.inviter}</span>
-                                <span>•</span>
-                                <span>Expires: {invitation.expires}</span>
-                              </div>
-                            </div>
-                            <div className="flex space-x-2 ml-4">
-                              <Button 
-                                size="sm" 
-                                className="bg-green-600 hover:bg-green-700"
-                                onClick={() => handleTeamInvitation(invitation.id, 'accept')}
-                              >
-                                Accept
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleTeamInvitation(invitation.id, 'decline')}
-                              >
-                                Decline
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <PlayerTeamManagement />
               </motion.div>
             )}
 

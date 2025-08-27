@@ -84,7 +84,20 @@ export const TournamentApprovalModal: React.FC<TournamentApprovalModalProps> = (
               <div className="space-y-2 text-sm">
                 <div><span className="font-medium">Sport:</span> {tournament.sport_type}</div>
                 <div><span className="font-medium">Format:</span> {(tournament as any).tournament_type}</div>
-                <div><span className="font-medium">Max Participants:</span> {tournament.max_participants}</div>
+                {(() => {
+                  // Check if this is a team-based tournament
+                  const isTeamBased = (tournament as any).max_teams && (tournament as any).max_teams > 0;
+                  if (isTeamBased) {
+                    return (
+                      <>
+                        <div><span className="font-medium">Max Teams:</span> {(tournament as any).max_teams}</div>
+                        <div><span className="font-medium">Team Size:</span> {(tournament as any).team_size_min || 0}-{(tournament as any).team_size || 0} players</div>
+                      </>
+                    );
+                  } else {
+                    return <div><span className="font-medium">Max Participants:</span> {tournament.max_participants}</div>;
+                  }
+                })()}
                 <div><span className="font-medium">Entry Fee:</span> रू {tournament.entry_fee}</div>
                 <div><span className="font-medium">Prize Pool:</span> रू {tournament.prize_pool}</div>
               </div>

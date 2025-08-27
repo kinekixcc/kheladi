@@ -1,33 +1,40 @@
-const CACHE_NAME = 'kheleko-v2';
+const CACHE_NAME = 'kheleko-v3';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icon.svg',
-  '/image.png'
+  '/image.png',
+  '/offline.html'
 ];
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
+  console.log('🔄 Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('✅ Opened cache:', CACHE_NAME);
         return cache.addAll(urlsToCache);
       })
       .catch((error) => {
-        console.error('Cache installation failed:', error);
+        console.error('❌ Cache installation failed:', error);
         // Continue with installation even if caching fails
         // Try to cache individual files instead of all at once
         return caches.open(CACHE_NAME).then(cache => {
           const cachePromises = urlsToCache.map(url => 
             cache.add(url).catch(err => {
-              console.warn(`Failed to cache ${url}:`, err);
+              console.warn(`⚠️ Failed to cache ${url}:`, err);
               return null;
             })
           );
           return Promise.allSettled(cachePromises);
         });
+      })
+      .then(() => {
+        console.log('✅ Service Worker installed successfully');
+        // Skip waiting to activate immediately
+        return self.skipWaiting();
       })
   );
 });
@@ -35,70 +42,142 @@ self.addEventListener('install', (event) => {
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
   try {
+    const url = new URL(event.request.url);
+    
     // Skip non-GET requests and non-http(s) requests
-    if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
+    if (event.request.method !== 'GET' || !url.protocol.startsWith('http')) {
       return;
     }
 
     // Skip certain file types that shouldn't be cached
-    const url = new URL(event.request.url);
     if (url.pathname.includes('.') && !url.pathname.endsWith('.html')) {
+      return;
+    }
+
+    // Skip API calls and external resources
+    if (url.pathname.startsWith('/api/') || url.hostname !== self.location.hostname) {
       return;
     }
 
     event.respondWith(
       caches.match(event.request)
         .then((response) => {
-          // Return cached version or fetch from network
+          // Return cached version if available
           if (response) {
+            console.log('✅ Serving from cache:', url.pathname);
             return response;
           }
           
           // Try to fetch from network
-          return fetch(event.request).catch(fetchError => {
-            console.error('Network fetch failed:', fetchError);
-            
-            // Check if this is a critical resource
-            if (event.request.destination === 'document' || event.request.mode === 'navigate') {
-              throw fetchError; // Re-throw to be caught by outer catch
-            }
-            
-            // For non-critical resources, return a basic error response
-            return new Response('Resource not available', {
-              status: 404,
-              statusText: 'Not Found',
-              headers: { 
-                'Content-Type': 'text/plain',
-                'Cache-Control': 'no-cache'
+          return fetch(event.request)
+            .then(networkResponse => {
+              // Cache successful network responses
+              if (networkResponse.ok) {
+                const responseClone = networkResponse.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(event.request, responseClone);
+                });
               }
+              return networkResponse;
+            })
+            .catch(fetchError => {
+              console.warn('⚠️ Network fetch failed for:', url.pathname, fetchError);
+              
+              // Check if this is a critical resource
+              if (event.request.destination === 'document' || event.request.mode === 'navigate') {
+                // For navigation requests, try to serve offline page
+                return caches.match('/offline.html')
+                  .then(offlinePage => {
+                    if (offlinePage) {
+                      console.log('✅ Serving offline page for:', url.pathname);
+                      return offlinePage;
+                    }
+                    // Fallback to index.html if offline.html is not available
+                    return caches.match('/index.html');
+                  })
+                  .catch(() => {
+                    // If even the offline page fails, return a basic HTML response
+                    return new Response(`
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <title>Offline - Kheleko</title>
+                          <meta charset="utf-8">
+                          <meta name="viewport" content="width=device-width, initial-scale=1">
+                          <style>
+                            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f8fafc; }
+                            h1 { color: #1e293b; margin-bottom: 20px; }
+                            p { color: #64748b; line-height: 1.6; }
+                            .container { max-width: 500px; margin: 0 auto; }
+                            .icon { font-size: 48px; margin-bottom: 20px; }
+                          </style>
+                        </head>
+                        <body>
+                          <div class="container">
+                            <div class="icon">🏟️</div>
+                            <h1>You're offline</h1>
+                            <p>Please check your internet connection and try again.</p>
+                            <p>Some features may not be available offline.</p>
+                            <p><strong>Kheleko</strong> - Sports Tournament Management</p>
+                          </div>
+                        </body>
+                      </html>
+                    `, {
+                      headers: { 'Content-Type': 'text/html' }
+                    });
+                  });
+              }
+              
+              // For non-critical resources, return a basic error response
+              return new Response('Resource not available offline', {
+                status: 404,
+                statusText: 'Not Found',
+                headers: { 
+                  'Content-Type': 'text/plain',
+                  'Cache-Control': 'no-cache'
+                }
+              });
             });
-          });
         })
         .catch((error) => {
-          console.error('Fetch failed:', error);
+          console.error('❌ Fetch failed for:', url.pathname, error);
           
           // Return offline page if both cache and network fail
           if (event.request.mode === 'navigate') {
-            return caches.match('/index.html')
+            return caches.match('/offline.html')
+              .then(offlinePage => {
+                if (offlinePage) {
+                  console.log('✅ Serving offline page for error fallback');
+                  return offlinePage;
+                }
+                // Fallback to index.html if offline.html is not available
+                return caches.match('/index.html');
+              })
               .catch(() => {
                 // If even the offline page fails, return a basic HTML response
                 return new Response(`
                   <!DOCTYPE html>
                   <html>
                     <head>
-                      <title>Offline - Kheleko</title>
+                      <title>Error - Kheleko</title>
                       <meta charset="utf-8">
                       <meta name="viewport" content="width=device-width, initial-scale=1">
                       <style>
-                        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                        h1 { color: #333; }
-                        p { color: #666; }
+                        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #fef2f2; }
+                        h1 { color: #dc2626; margin-bottom: 20px; }
+                        p { color: #7f1d1d; line-height: 1.6; }
+                        .container { max-width: 500px; margin: 0 auto; }
+                        .icon { font-size: 48px; margin-bottom: 20px; }
                       </style>
                     </head>
                     <body>
-                      <h1>You're offline</h1>
-                      <p>Please check your internet connection and try again.</p>
-                      <p>Some features may not be available offline.</p>
+                      <div class="container">
+                        <div class="icon">⚠️</div>
+                        <h1>Something went wrong</h1>
+                        <p>We're having trouble loading this page.</p>
+                        <p>Please try refreshing or check your connection.</p>
+                        <p><strong>Kheleko</strong> - Sports Tournament Management</p>
+                      </div>
                     </body>
                   </html>
                 `, {
@@ -108,7 +187,7 @@ self.addEventListener('fetch', (event) => {
           }
           
           // For non-navigation requests, return a proper error response
-          return new Response('Network error', {
+          return new Response('Service temporarily unavailable', {
             status: 503,
             statusText: 'Service Unavailable',
             headers: {
@@ -119,7 +198,7 @@ self.addEventListener('fetch', (event) => {
         })
     );
   } catch (error) {
-    console.error('Service Worker fetch event error:', error);
+    console.error('❌ Service Worker fetch event error:', error);
     // Return a basic error response if everything fails
     event.respondWith(
       new Response('Service Worker Error', {
@@ -133,12 +212,13 @@ self.addEventListener('fetch', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  console.log('🔄 Service Worker activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       const deletePromises = cacheNames
         .filter(cacheName => cacheName !== CACHE_NAME)
         .map(cacheName => {
-          console.log('Deleting old cache:', cacheName);
+          console.log('🗑️ Deleting old cache:', cacheName);
           return caches.delete(cacheName);
         });
       
@@ -147,8 +227,13 @@ self.addEventListener('activate', (event) => {
       }
       return Promise.resolve();
     })
+    .then(() => {
+      console.log('✅ Service Worker activated successfully');
+      // Take control of all clients immediately
+      return self.clients.claim();
+    })
     .catch((error) => {
-      console.error('Cache cleanup failed:', error);
+      console.error('❌ Cache cleanup failed:', error);
     })
   );
 });
@@ -156,6 +241,7 @@ self.addEventListener('activate', (event) => {
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
   if (event.tag === 'background-sync') {
+    console.log('🔄 Background sync triggered');
     event.waitUntil(doBackgroundSync());
   }
 });
@@ -163,7 +249,7 @@ self.addEventListener('sync', (event) => {
 async function doBackgroundSync() {
   try {
     // Sync offline data when connection is restored
-    console.log('Background sync triggered');
+    console.log('✅ Background sync started');
     
     // You can implement specific sync logic here
     // For example, sync offline tournament registrations
@@ -171,12 +257,13 @@ async function doBackgroundSync() {
     // Check if we have any offline data to sync
     const offlineData = await getOfflineData();
     if (offlineData && offlineData.length > 0) {
-      console.log(`Found ${offlineData.length} offline items to sync`);
+      console.log(`📊 Found ${offlineData.length} offline items to sync`);
       // Implement your sync logic here
     }
     
+    console.log('✅ Background sync completed');
   } catch (error) {
-    console.error('Background sync failed:', error);
+    console.error('❌ Background sync failed:', error);
     // Re-throw to ensure the sync event is properly handled
     throw error;
   }
@@ -189,7 +276,7 @@ async function getOfflineData() {
     // For example, check IndexedDB for offline tournament registrations
     return [];
   } catch (error) {
-    console.error('Failed to get offline data:', error);
+    console.error('❌ Failed to get offline data:', error);
     return [];
   }
 }
@@ -203,13 +290,13 @@ self.addEventListener('push', (event) => {
       notificationData = event.data.json();
     }
   } catch (error) {
-    console.warn('Failed to parse push data:', error);
+    console.warn('⚠️ Failed to parse push data:', error);
   }
 
   const options = {
     body: notificationData.body || 'New notification from Kheleko',
-    icon: '/image.png',
-    badge: '/image.png',
+    icon: '/icon.svg',
+    badge: '/icon.svg',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -220,20 +307,23 @@ self.addEventListener('push', (event) => {
       {
         action: 'explore',
         title: 'View',
-        icon: '/image.png'
+        icon: '/icon.svg'
       },
       {
         action: 'close',
         title: 'Close',
-        icon: '/image.png'
+        icon: '/icon.svg'
       }
     ]
   };
 
   event.waitUntil(
     self.registration.showNotification('Kheleko', options)
+      .then(() => {
+        console.log('✅ Push notification shown successfully');
+      })
       .catch((error) => {
-        console.error('Failed to show notification:', error);
+        console.error('❌ Failed to show notification:', error);
       })
   );
 });
@@ -263,7 +353,7 @@ self.addEventListener('message', (event) => {
       });
     }
   } catch (error) {
-    console.error('Message handling failed:', error);
+    console.error('❌ Message handling failed:', error);
   }
 });
 
@@ -274,8 +364,11 @@ self.addEventListener('notificationclick', (event) => {
   if (event.action === 'explore') {
     event.waitUntil(
       clients.openWindow('/')
+        .then(() => {
+          console.log('✅ Window opened successfully');
+        })
         .catch((error) => {
-          console.error('Failed to open window:', error);
+          console.error('❌ Failed to open window:', error);
           // Fallback: try to focus existing window
           return clients.matchAll().then(clients => {
             if (clients.length > 0) {

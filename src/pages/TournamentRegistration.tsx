@@ -24,7 +24,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { tournamentService, registrationService } from '../lib/database';
 import { auditLogService } from '../lib/auditLog';
-import { validateRegistrationData, sanitizeInput } from '../utils/dataValidation';
+import { sanitizeInput } from '../utils/dataValidation';
 import { dummyPaymentProcessor } from '../lib/dummyPaymentSystem';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -87,7 +87,10 @@ export const TournamentRegistration: React.FC = () => {
   }, [tournamentId, navigate]);
 
   const onSubmit = async (data: RegistrationForm) => {
-    if (!tournament || !user) return;
+    if (!tournament || !user) {
+      toast.error('Tournament or user information not available');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -99,106 +102,51 @@ export const TournamentRegistration: React.FC = () => {
         return;
       }
 
-      // Validate and sanitize registration data
+      // Sanitize registration data
       const sanitizedData = {
         ...data,
         player_name: sanitizeInput(data.player_name),
         emergency_contact: sanitizeInput(data.emergency_contact),
         medical_conditions: data.medical_conditions ? sanitizeInput(data.medical_conditions) : undefined
       };
-      
-      validateRegistrationData(sanitizedData);
-      
-      const registration = {
-        tournament_id: tournament.id,
-        player_id: user.id,
+
+      // Calculate platform fee (10% of entry fee)
+      const platformFee = Math.round((tournament.entry_fee || 0) * 0.1);
+      const totalAmount = (tournament.entry_fee || 0) + platformFee;
+
+      // Store registration data for payment page
+      const paymentData = {
+        tournament_name: tournament.name,
+        entry_fee: tournament.entry_fee || 0,
+        platform_fee: platformFee,
+        total_amount: totalAmount,
         player_name: sanitizedData.player_name,
-        email: sanitizedData.email,
-        phone: sanitizedData.phone,
-        age: sanitizedData.age,
-        experience_level: sanitizedData.experience_level,
-        team_name: sanitizedData.team_name,
-        emergency_contact: sanitizedData.emergency_contact,
-        medical_conditions: sanitizedData.medical_conditions,
-        status: 'registered' as const,
-        entry_fee_paid: false,
-        payment_status: 'pending'
+        tournament_data: tournament,
+        registration_data: {
+          tournament_id: tournament.id,
+          player_id: user.id,
+          player_name: sanitizedData.player_name,
+          email: sanitizedData.email,
+          phone: sanitizedData.phone,
+          age: sanitizedData.age,
+          experience_level: sanitizedData.experience_level,
+          team_name: sanitizedData.team_name,
+          emergency_contact: sanitizedData.emergency_contact,
+          medical_conditions: sanitizedData.medical_conditions,
+          status: 'registered',
+          registration_date: new Date().toISOString()
+        }
       };
 
-      setRegistrationData(registration);
-      
-      if (tournament.entry_fee > 0) {
-        // Temporarily skip payment step
-        await completeRegistration(registration);
-      } else {
-        await completeRegistration(registration);
-      }
+      // Store in localStorage and redirect to payment page
+      localStorage.setItem('pending_player_registration', JSON.stringify(paymentData));
+      navigate('/player-registration-payment');
+
     } catch (error) {
-      console.error('Registration error:', error);
-      toast.error(`Registration failed: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      console.error('Registration preparation error:', error);
+      toast.error('Failed to prepare registration. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const completeRegistration = async (registration: any) => {
-    try {
-      // Create registration in database
-      const createdRegistration = await registrationService.createRegistration(registration);
-      console.log('✅ Registration completed:', createdRegistration);
-
-      // If there's an entry fee, mark as paid (since we're using dummy payment)
-      if (tournament!.entry_fee > 0) {
-        try {
-          await registrationService.updateRegistration(createdRegistration.id, {
-            entry_fee_paid: true,
-            payment_status: 'completed',
-            transaction_id: `DUMMY_${Date.now()}`
-          });
-          
-          // Record dummy payment transaction
-          await dummyPaymentProcessor.processPayment({
-            amount: tournament!.entry_fee,
-            tournamentId: tournament!.id,
-            tournamentName: tournament!.name,
-            userId: user!.id,
-            userEmail: user!.email,
-            description: `Tournament registration for ${tournament!.name}`
-          });
-          
-          console.log('✅ Dummy payment recorded for analytics');
-        } catch (paymentError) {
-          console.warn('⚠️ Failed to record dummy payment, continuing with registration:', paymentError);
-        }
-      }
-
-      // Add notification
-      addNotification({
-        type: 'tournament_registration_success',
-        title: 'Registration Successful!',
-        message: `Your registration for "${tournament!.name}" has been completed successfully.`,
-        userId: user!.id,
-        tournamentId: tournament!.id,
-        tournamentName: tournament!.name,
-        targetRole: 'player'
-      });
-      
-      // Add notification for organizer
-      addNotification({
-        type: 'new_tournament_available',
-        title: 'New Tournament Registration',
-        message: `${registration.player_name} has registered for "${tournament!.name}"`,
-        userId: tournament!.organizer_id,
-        tournamentId: tournament!.id,
-        tournamentName: tournament!.name,
-        targetRole: 'organizer'
-      });
-
-      toast.success('Registration completed successfully!');
-      navigate('/player-dashboard');
-    } catch (error) {
-      console.error('Registration completion error:', error);
-      toast.error('Failed to complete registration. Please try again.');
     }
   };
 

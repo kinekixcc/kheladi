@@ -26,6 +26,8 @@ import { auditLogService } from '../../lib/auditLog';
 import toast from 'react-hot-toast';
 import { Phone, Mail } from 'lucide-react';
 import { notificationService } from '../../lib/database';
+import { paymentService } from '../../lib/paymentService';
+import { supabase } from '../../lib/supabase';
 
 interface AdminTournamentManagementProps {
   tournaments: any[];
@@ -45,16 +47,42 @@ export const AdminTournamentManagement: React.FC<AdminTournamentManagementProps>
   const [tournamentToDelete, setTournamentToDelete] = useState<any>(null);
   const [deleteReason, setDeleteReason] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   useEffect(() => {
     filterTournaments();
-  }, [tournaments, statusFilter]);
+  }, [tournaments, statusFilter, forceUpdate]);
 
   const filterTournaments = () => {
+    console.log('🔍 Filtering tournaments:', {
+      statusFilter,
+      totalTournaments: tournaments.length,
+      tournamentStatuses: tournaments.map(t => ({ id: t.id, name: t.name, status: t.status }))
+    });
+    
     if (statusFilter === 'all') {
       setFilteredTournaments(tournaments);
     } else {
-      setFilteredTournaments(tournaments.filter(t => t.status === statusFilter));
+      // Map filter values to actual tournament status values
+      const statusMapping: Record<string, string> = {
+        'pending': 'pending_approval',
+        'approved': 'approved',
+        'rejected': 'rejected',
+        'active': 'active',
+        'completed': 'completed'
+      };
+      
+      const targetStatus = statusMapping[statusFilter];
+      console.log('🎯 Filter mapping:', { statusFilter, targetStatus });
+      
+      const filtered = tournaments.filter(t => t.status === targetStatus);
+      console.log('✅ Filtered results:', {
+        targetStatus,
+        filteredCount: filtered.length,
+        filteredTournaments: filtered.map(t => ({ id: t.id, name: t.name, status: t.status }))
+      });
+      
+      setFilteredTournaments(filtered);
     }
   };
 
@@ -116,9 +144,25 @@ export const AdminTournamentManagement: React.FC<AdminTournamentManagementProps>
         );
       }
       
+      // Update local filtered tournaments immediately
+      setFilteredTournaments(prevFiltered => 
+        prevFiltered.map(t => 
+          t.id === tournamentId 
+            ? { ...t, status: 'approved' }
+            : t
+        )
+      );
+      
       toast.success('Tournament approved successfully!');
-      onTournamentUpdate();
+      
+      // Close modal
       setShowDetailsModal(false);
+      
+      // Notify parent to refresh data
+      onTournamentUpdate();
+      
+      // Force re-render
+      setForceUpdate(prev => prev + 1);
     } catch (error) {
       console.error('Error approving tournament:', error);
       toast.error('Failed to approve tournament');
@@ -130,12 +174,70 @@ export const AdminTournamentManagement: React.FC<AdminTournamentManagementProps>
   const handleRejectTournament = async (tournamentId: string, reason: string) => {
     setLoading(true);
     try {
+      // 1. Update tournament status to rejected
       await tournamentService.updateTournament(tournamentId, { 
         status: 'rejected', 
         admin_notes: reason 
       });
       
-      // Log the rejection action
+      // 2. Create rejection record (preserves data)
+      const tournament = tournaments.find(t => t.id === tournamentId);
+      if (tournament) {
+        try {
+          await supabase
+            .from('tournament_rejections')
+            .insert([{
+              tournament_id: tournamentId,
+              organizer_id: tournament.organizer_id,
+              rejection_reason: reason,
+              admin_id: user?.id,
+              admin_notes: reason
+            }]);
+        } catch (rejectionError) {
+          console.error('Failed to create rejection record:', rejectionError);
+          // Don't fail the rejection for this error
+        }
+
+        // 3. Check if commission was paid and create refund request
+        try {
+          console.log('🔍 Checking for commission payment for tournament:', tournamentId);
+          console.log('🔍 Tournament organizer_id:', tournament.organizer_id);
+          
+          // First check if there's any commission record at all
+          const { data: commissionCheck, error: checkError } = await supabase
+            .from('tournament_commissions')
+            .select('*')
+            .eq('tournament_id', tournamentId);
+          
+          console.log('🔍 All commission records for tournament:', commissionCheck);
+          if (checkError) console.error('❌ Error checking commission records:', checkError);
+          
+          const commission = await paymentService.getTournamentCommissionForRefund(tournamentId);
+          console.log('💰 Commission data for refund:', commission);
+          
+          if (commission && commission.payment_status === 'paid') {
+            console.log('💳 Commission paid, creating refund request...');
+            await paymentService.createTournamentCommissionRefund({
+              tournament_id: tournamentId,
+              organizer_id: tournament.organizer_id,
+              commission_amount: commission.commission_amount,
+              reason: `Tournament rejected: ${reason}`,
+              admin_notes: `Automatic refund request created for rejected tournament`
+            });
+            
+            toast.success('Tournament rejected. Refund request created for commission payment.');
+          } else {
+            console.log('❌ No commission payment found or not paid');
+            console.log('💡 This tournament may not have required commission payment');
+            toast.success('Tournament rejected successfully. No commission payment to refund.');
+          }
+        } catch (refundError) {
+          console.error('💥 Failed to create refund request:', refundError);
+          toast.success('Tournament rejected, but refund request creation failed. Please process refund manually.');
+        }
+      }
+      
+      // 4. Log the rejection action
       await auditLogService.logTournamentApproval(
         user?.id || '',
         user?.full_name || 'Admin',
@@ -143,8 +245,7 @@ export const AdminTournamentManagement: React.FC<AdminTournamentManagementProps>
         false
       );
 
-      // Send notification to organizer
-      const tournament = tournaments.find(t => t.id === tournamentId);
+      // 5. Send notification to organizer
       if (tournament) {
         await notificationService.createTournamentApprovalNotification(
           tournamentId,
@@ -154,9 +255,23 @@ export const AdminTournamentManagement: React.FC<AdminTournamentManagementProps>
         );
       }
       
-      toast.success('Tournament rejected');
-      onTournamentUpdate();
+      // Update local filtered tournaments immediately
+      setFilteredTournaments(prevFiltered => 
+        prevFiltered.map(t => 
+          t.id === tournamentId 
+            ? { ...t, status: 'rejected', admin_notes: reason }
+            : t
+        )
+      );
+      
+      // Close modal
       setShowDetailsModal(false);
+      
+      // Notify parent to refresh data
+      onTournamentUpdate();
+      
+      // Force re-render
+      setForceUpdate(prev => prev + 1);
     } catch (error) {
       console.error('Error rejecting tournament:', error);
       toast.error('Failed to reject tournament');
@@ -319,7 +434,15 @@ export const AdminTournamentManagement: React.FC<AdminTournamentManagementProps>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
                     <div className="flex items-center">
                       <Users className="h-4 w-4 mr-2" />
-                      {tournament.current_participants || 0}/{tournament.max_participants} participants
+                      {(() => {
+                        // Check if this is a team-based tournament
+                        const isTeamBased = (tournament as any).max_teams && (tournament as any).max_teams > 0;
+                        if (isTeamBased) {
+                          return `${(tournament as any).current_teams || 0}/${(tournament as any).max_teams} teams`;
+                        } else {
+                          return `${tournament.current_participants || 0}/${tournament.max_participants} participants`;
+                        }
+                      })()}
                     </div>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />

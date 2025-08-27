@@ -24,6 +24,7 @@ import { tournamentService } from '../../lib/database';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import toast from 'react-hot-toast';
+import { registrationService } from '../../lib/database';
 
 interface TournamentManagementProps {
   tournaments: any[];
@@ -40,6 +41,7 @@ export const TournamentManagement: React.FC<TournamentManagementProps> = ({
   const [selectedTournament, setSelectedTournament] = useState<any>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -104,8 +106,103 @@ export const TournamentManagement: React.FC<TournamentManagementProps> = ({
     }
   };
 
+  // Add revenue collection functionality
+  const handleRevenueCollection = async (tournament: any) => {
+    try {
+      setLoading(true);
+      
+      // Get tournament registrations
+      const registrations = await registrationService.getTournamentRegistrations(tournament.id);
+      const confirmedRegistrations = registrations.filter(reg => reg.status === 'confirmed');
+      
+      if (confirmedRegistrations.length === 0) {
+        toast.error('No confirmed registrations to collect revenue from');
+        return;
+      }
+
+      const totalRevenue = confirmedRegistrations.reduce((sum, reg) => sum + reg.entry_fee, 0);
+      const platformCommission = totalRevenue * 0.15; // 15% platform fee
+      const organizerRevenue = totalRevenue - platformCommission;
+
+      // Process demo revenue collection
+      const revenueResult = await processDemoRevenueCollection(tournament.id, totalRevenue, organizerRevenue);
+      
+      if (revenueResult.success) {
+        // Update tournament revenue status
+        await tournamentService.updateTournament(tournament.id, {
+          revenue_collected: true,
+          total_revenue: totalRevenue,
+          platform_commission: platformCommission,
+          organizer_revenue: organizerRevenue,
+          revenue_collected_at: new Date().toISOString()
+        });
+
+        toast.success(`Revenue collected successfully! Total: $${totalRevenue}, Your share: $${organizerRevenue}`);
+        onTournamentUpdate();
+      } else {
+        toast.error('Revenue collection failed');
+      }
+    } catch (error) {
+      console.error('Revenue collection error:', error);
+      toast.error('Failed to collect revenue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Demo revenue collection processing
+  const processDemoRevenueCollection = async (tournamentId: string, totalAmount: number, organizerAmount: number) => {
+    // Simulate revenue collection processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Demo revenue collection always succeeds
+    return {
+      success: true,
+      transactionId: `rev_${Date.now()}_${tournamentId}`,
+      totalAmount,
+      organizerAmount,
+      platformCommission: totalAmount * 0.15,
+      status: 'completed'
+    };
+  };
+
+  // Add participant management functionality
+  const handleViewParticipants = async (tournament: any) => {
+    try {
+      setLoading(true);
+      const registrations = await registrationService.getTournamentRegistrations(tournament.id);
+      
+      // Show participants in a modal or navigate to participants page
+      console.log('Tournament participants:', registrations);
+      
+      // For now, show in console and navigate to participants tab
+      toast.success(`Found ${registrations.length} participants`);
+      
+      // You can implement a modal here to show participants
+      // For demo purposes, we'll just show the count
+      
+    } catch (error) {
+      console.error('Error loading participants:', error);
+      toast.error('Failed to load participants');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Check if revenue can be collected
+  const canCollectRevenue = (tournament: any) => {
+    return tournament.status === 'approved' && 
+           !tournament.revenue_collected && 
+           (tournament.current_participants || 0) > 0;
+  };
+
+  // Check if tournament has participants
+  const hasParticipants = (tournament: any) => {
+    return (tournament.current_participants || 0) > 0;
+  };
+
   const handleEditTournament = (tournament: any) => {
-    // Navigate to edit page with tournament data
+    // Navigate to edit page
     navigate(`/edit-tournament/${tournament.id}`);
   };
 
@@ -160,6 +257,15 @@ export const TournamentManagement: React.FC<TournamentManagementProps> = ({
     window.URL.revokeObjectURL(url);
     
     toast.success('Tournament data exported!');
+  };
+
+  const canEditTournament = (tournament: any): boolean => {
+    const editableStatuses = ['draft', 'pending_approval', 'rejected'];
+    const currentDate = new Date();
+    const startDate = new Date(tournament.start_date);
+    
+    return editableStatuses.includes(tournament.status) || 
+           (tournament.status === 'approved' && startDate > currentDate);
   };
 
   return (
@@ -257,14 +363,15 @@ export const TournamentManagement: React.FC<TournamentManagementProps> = ({
                       View
                     </Button>
                     
-                    {tournament.status !== 'completed' && (
+                    {/* Show edit button only for editable tournaments */}
+                    {canEditTournament(tournament) && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditTournament(tournament)}
                       >
                         <Edit className="h-4 w-4 mr-1" />
-                        Edit
+                        {tournament.status === 'rejected' ? 'Fix & Resubmit' : 'Edit'}
                       </Button>
                     )}
                     
@@ -298,6 +405,39 @@ export const TournamentManagement: React.FC<TournamentManagementProps> = ({
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Delete
+                      </Button>
+                    )}
+
+                    {/* Revenue Collection Button */}
+                    {canCollectRevenue(tournament) && (
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => handleRevenueCollection(tournament)}
+                        loading={loading}
+                      >
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        Collect Revenue
+                      </Button>
+                    )}
+
+                    {/* Revenue Status Display */}
+                    {tournament.revenue_collected && (
+                      <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                        Revenue Collected: रू {tournament.organizer_revenue}
+                      </div>
+                    )}
+
+                    {/* Participant Management Button */}
+                    {hasParticipants(tournament) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewParticipants(tournament)}
+                        loading={loading}
+                      >
+                        <Users className="h-4 w-4 mr-1" />
+                        View Participants ({tournament.current_participants})
                       </Button>
                     )}
                   </div>

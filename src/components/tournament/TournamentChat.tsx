@@ -15,6 +15,7 @@ import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import toast from 'react-hot-toast';
+import { imageUploadService } from '../../lib/imageUpload';
 
 interface TournamentChatProps {
   tournamentId: string;
@@ -164,12 +165,12 @@ export const TournamentChat: React.FC<TournamentChatProps> = ({
 
     setSending(true);
     try {
-      // Convert file to base64 for storage (in production, upload to cloud storage)
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
+      // Upload file to Supabase storage
+      const result = await imageUploadService.uploadImage(file, 'chat-files');
+      
+      if (!result.success) {
+        throw new Error(result.error || 'File upload failed');
+      }
 
       const messageData = {
         tournament_id: tournamentId,
@@ -177,7 +178,7 @@ export const TournamentChat: React.FC<TournamentChatProps> = ({
         sender_id: user?.id!,
         message: file.name,
         message_type: file.type.startsWith('image/') ? 'image' : 'file' as const,
-        file_url: base64
+        file_url: result.url!
       };
 
       await chatService.sendMessage(messageData);

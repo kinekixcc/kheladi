@@ -49,9 +49,64 @@
             } else if (registration.active) {
               console.log('✅ Service Worker active');
             }
+
+            // Handle service worker updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              console.log('🔄 Service Worker update found');
+              
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('🔄 New Service Worker installed, waiting to activate');
+                  // You can show a notification to the user here
+                  if (confirm('A new version of Kheleko is available. Would you like to update now?')) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                }
+              });
+            });
+
+            // Handle service worker controller change
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+              if (!refreshing) {
+                refreshing = true;
+                console.log('🔄 Service Worker controller changed, refreshing page');
+                window.location.reload();
+              }
+            });
+
           } catch (error) {
             console.error('❌ Service Worker registration failed:', error);
+            // Don't show error to user, just log it
           }
+        });
+
+        // Handle service worker errors
+        navigator.serviceWorker.addEventListener('error', (event) => {
+          console.error('❌ Service Worker error:', event.error);
+        });
+
+        // Handle service worker message errors
+        navigator.serviceWorker.addEventListener('messageerror', (event) => {
+          console.error('❌ Service Worker message error:', event);
+        });
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          console.log('✅ PWA install prompt ready');
+          
+          // You can show a custom install button here
+          // For now, we'll just log it
+        });
+
+        // Handle successful installation
+        window.addEventListener('appinstalled', () => {
+          console.log('✅ PWA installed successfully');
+          deferredPrompt = null;
         });
       } else {
         console.log('❌ Service Worker not supported');

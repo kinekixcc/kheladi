@@ -198,6 +198,25 @@ export const ScalableOrganizerManagement: React.FC<ScalableOrganizerManagementPr
     }
   };
 
+  // Handler functions for action buttons
+  const handleViewOrganizer = (organizer: OrganizerData) => {
+    console.log('Viewing organizer:', organizer);
+    // TODO: Implement organizer detail modal
+    toast.success(`Viewing ${organizer.full_name}'s profile`);
+  };
+
+  const handleEditOrganizer = (organizer: OrganizerData) => {
+    console.log('Editing organizer:', organizer);
+    // TODO: Implement organizer edit modal
+    toast.success(`Editing ${organizer.full_name}'s profile`);
+  };
+
+  const handleManageBadges = (organizer: OrganizerData) => {
+    console.log('Managing badges for organizer:', organizer);
+    // TODO: Implement badge management modal
+    toast.success(`Managing badges for ${organizer.full_name}`);
+  };
+
   const handleBulkAction = async (action: 'activate' | 'deactivate' | 'delete') => {
     if (selectedOrganizers.length === 0) return;
     
@@ -366,7 +385,6 @@ export const ScalableOrganizerManagement: React.FC<ScalableOrganizerManagementPr
             }}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
-            <option value={10}>10 per page</option>
             <option value={25}>25 per page</option>
             <option value={50}>50 per page</option>
             <option value={100}>100 per page</option>
@@ -375,28 +393,42 @@ export const ScalableOrganizerManagement: React.FC<ScalableOrganizerManagementPr
 
         {/* Bulk Actions */}
         {selectedOrganizers.length > 0 && (
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
-            <span className="text-sm text-blue-800">
-              {selectedOrganizers.length} organizer(s) selected
-            </span>
-            <div className="flex space-x-2">
-              <Button size="sm" onClick={() => handleBulkAction('activate')}>
-                <UserCheck className="h-4 w-4 mr-1" />
-                Activate
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => handleBulkAction('deactivate')}>
-                <UserX className="h-4 w-4 mr-1" />
-                Deactivate
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="text-red-600 hover:text-red-800"
-                onClick={() => handleBulkAction('delete')}
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete
-              </Button>
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-blue-900">
+                  {selectedOrganizers.length} organizer(s) selected
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBulkAction('activate')}
+                  className="text-green-600 border-green-300 hover:bg-green-50"
+                >
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Activate
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBulkAction('deactivate')}
+                  className="text-yellow-600 border-yellow-300 hover:bg-yellow-50"
+                >
+                  <UserX className="h-4 w-4 mr-2" />
+                  Deactivate
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBulkAction('delete')}
+                  className="text-red-600 border-red-300 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -527,13 +559,28 @@ export const ScalableOrganizerManagement: React.FC<ScalableOrganizerManagementPr
                       
                       <td className="px-6 py-4">
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewOrganizer(organizer)}
+                            title="View organizer details"
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditOrganizer(organizer)}
+                            title="Edit organizer"
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleManageBadges(organizer)}
+                            title="Manage badges"
+                          >
                             <Award className="h-4 w-4" />
                           </Button>
                         </div>

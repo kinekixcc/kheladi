@@ -14,10 +14,11 @@ import {
   SessionParticipant,
   RecurrencePattern,
 } from '../types';
+import { tournamentUtils } from '../utils/tournamentUtils';
 
 // Tournament operations
 export const tournamentService = {
-  // Get all public tournaments (only approved by admin)
+  // Get all public tournaments (only visible and relevant ones)
   async getPublicTournaments() {
     if (!isSupabaseConfigured) {
       throw new Error(
@@ -29,7 +30,30 @@ export const tournamentService = {
       .from('tournaments')
       .select('*')
       .eq('visibility', 'public')
-      .in('status', ['approved', 'active', 'completed']) // Only show approved tournaments
+      .in('status', ['approved', 'active', 'completed'])
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    
+    // Filter out tournaments that are not visible to players
+    const visibleTournaments = (data || []).filter(tournament => 
+      tournamentUtils.isTournamentVisible(tournament)
+    );
+    
+    return visibleTournaments;
+  },
+
+  // Get all tournaments for admin review (including pending approval)
+  async getAllTournamentsForAdmin() {
+    if (!isSupabaseConfigured) {
+      throw new Error(
+        'Supabase not connected. Please connect to Supabase to access tournaments.'
+      );
+    }
+
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -47,55 +71,46 @@ export const tournamentService = {
     const { data, error } = await supabase
       .from('tournaments')
       .select('*')
-      .in('status', ['approved', 'active', 'completed'])
+      .eq('status', 'approved')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Filter out tournaments that are not visible to players
+    const visibleTournaments = (data || []).filter(tournament => 
+      tournamentUtils.isTournamentVisible(tournament)
+    );
+    
+    return visibleTournaments;
   },
 
-  // Get available tournaments for players
-  async getAvailableTournaments() {
+  // Get tournaments for players (filtered by visibility)
+  async getPlayerTournaments() {
     if (!isSupabaseConfigured) {
-      throw new Error(
-        'Supabase not connected. Please connect to Supabase to access tournaments.'
-      );
+      throw new Error('Supabase not connected.');
     }
 
     const { data, error } = await supabase
       .from('tournaments')
       .select('*')
-      .in('status', ['approved', 'active'])
+      .eq('visibility', 'public')
+      .in('status', ['approved', 'active', 'completed'])
       .order('start_date', { ascending: true });
 
     if (error) throw error;
-    return data || [];
-  },
-
-  // Get tournaments by organizer
-  async getTournamentsByOrganizer(organizerId: string) {
-    if (!isSupabaseConfigured) {
-      throw new Error(
-        'Supabase not connected. Please connect to Supabase to manage tournaments.'
-      );
-    }
-
-    const { data, error } = await supabase
-      .from('tournaments')
-      .select('*')
-      .eq('organizer_id', organizerId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    
+    // Filter out tournaments that are not visible to players
+    const visibleTournaments = (data || []).filter(tournament => 
+      tournamentUtils.isTournamentVisible(tournament)
+    );
+    
+    return visibleTournaments;
   },
 
   // Get tournament by ID
-  async getTournamentById(id: string) {
+  async getTournamentById(id: string): Promise<Tournament> {
     if (!isSupabaseConfigured) {
-      throw new Error(
-        'Supabase not connected. Please connect to Supabase to view tournament details.'
-      );
+      throw new Error('Supabase not connected.');
     }
 
     const { data, error } = await supabase
@@ -108,115 +123,26 @@ export const tournamentService = {
     return data;
   },
 
-  // Create tournament (now without admin approval)
-  async createTournament(
-    tournament: Omit<Tournament, 'id' | 'created_at' | 'updated_at'>
-  ) {
+  // Create new tournament
+  async createTournament(tournamentData: Partial<Tournament>): Promise<Tournament> {
     if (!isSupabaseConfigured) {
-      throw new Error(
-        'Supabase not connected. Please connect to Supabase to create tournaments.'
-      );
+      throw new Error('Supabase not connected.');
     }
 
-    console.log('🔄 Starting tournament creation in database service...');
+    const { data, error } = await supabase
+      .from('tournaments')
+      .insert([tournamentData])
+      .select()
+      .single();
 
-    // Validate tournament data
-    const {
-      validateTournamentData,
-      sanitizeInput,
-      sanitizePhoneNumber,
-      sanitizeEmail,
-    } = await import('../utils/dataValidation');
-
-    const sanitizedTournament = {
-      ...tournament,
-      name: sanitizeInput(tournament.name),
-      description: sanitizeInput(tournament.description || ''),
-      venue_name: sanitizeInput((tournament as any).venue_name || ''),
-      venue_address: sanitizeInput((tournament as any).venue_address || ''),
-      contact_phone: sanitizePhoneNumber(
-        (tournament as any).contact_phone || ''
-      ),
-      contact_email: sanitizeEmail((tournament as any).contact_email || ''),
-      rules: sanitizeInput(tournament.rules || ''),
-      requirements: sanitizeInput(tournament.requirements || ''),
-      // Set default values for new fields
-      requires_approval: true, // Admin approval is mandatory
-      is_recurring: tournament.is_recurring || false,
-      chat_enabled: true,
-      visibility: 'public',
-      status: 'pending_approval', // All tournaments start with pending approval
-    };
-
-    console.log('✅ Data validation completed');
-
-    validateTournamentData(sanitizedTournament);
-
-    console.log('🗄️ Inserting tournament into database...');
-
-    try {
-      const { data, error } = await supabase
-        .from('tournaments')
-        .insert([sanitizedTournament])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ Database insertion failed:', error);
-        throw new Error(`Database error: ${error.message}`);
-      }
-
-      if (!data) {
-        throw new Error('No data returned from database insertion');
-      }
-
-      console.log('✅ Tournament successfully inserted into database');
-
-      // Log the tournament creation (best-effort)
-      try {
-        const { auditLogService } = await import('../lib/auditLog');
-        await auditLogService.logTournamentCreation(
-          tournament.organizer_id || '',
-          tournament.organizer_name || '',
-          data
-        );
-        console.log('✅ Audit log created');
-      } catch (auditError) {
-        console.warn('⚠️ Audit logging failed (non-critical):', auditError);
-      }
-
-      return data;
-    } catch (dbError) {
-      console.error('❌ Database operation failed:', dbError);
-
-      if (dbError instanceof Error) {
-        if (dbError.message.includes('duplicate key')) {
-          throw new Error(
-            'A tournament with this name already exists. Please choose a different name.'
-          );
-        } else if (dbError.message.includes('foreign key')) {
-          throw new Error(
-            'Invalid organizer information. Please try logging out and back in.'
-          );
-        } else if (dbError.message.includes('check constraint')) {
-          throw new Error(
-            'Invalid tournament data. Please check all fields and try again.'
-          );
-        } else {
-          throw dbError;
-        }
-      }
-
-      throw new Error('Database operation failed. Please try again.');
-    }
+    if (error) throw error;
+    return data;
   },
 
   // Update tournament
-  async updateTournament(id: string, updates: Partial<Tournament>) {
+  async updateTournament(id: string, updates: Partial<Tournament>): Promise<Tournament> {
     if (!isSupabaseConfigured) {
-      throw new Error(
-        'Supabase not connected. Please connect to Supabase to update tournaments.'
-      );
+      throw new Error('Supabase not connected.');
     }
 
     const { data, error } = await supabase
@@ -230,241 +156,166 @@ export const tournamentService = {
     return data;
   },
 
-  // Delete tournament (hard delete with verification)
-  async deleteTournament(id: string) {
-    if (!isSupabaseConfigured) {
-      throw new Error(
-        'Supabase not connected. Please connect to Supabase to delete tournaments.'
-      );
-    }
-
-    console.log(
-      '🗑️ ADMIN DELETION: Starting comprehensive tournament removal:',
-      id
-    );
-
-    try {
-      // Verify tournament exists before deletion
-      console.log('🔍 Verifying tournament exists...');
-      const { data: existingTournament, error: checkError } = await supabase
-        .from('tournaments')
-        .select('id, name, organizer_id')
-        .eq('id', id)
-        .single();
-
-      if (checkError) {
-        throw new Error(`Tournament not found: ${checkError.message}`);
-      }
-
-      if (!existingTournament) {
-        throw new Error('Tournament not found');
-      }
-
-      console.log('✅ Tournament verified:', existingTournament.name);
-
-      // Delete related records first (cascade should handle this, but explicit for safety)
-      console.log('🗑️ Deleting related records...');
-
-      // Delete chat messages
-      const { error: chatError } = await supabase
-        .from('chat_messages')
-        .delete()
-        .eq('tournament_id', id);
-
-      if (chatError) {
-        console.warn('⚠️ Chat messages deletion warning:', chatError);
-      }
-
-      // Delete teams and team members
-      const { error: teamError } = await supabase
-        .from('teams')
-        .delete()
-        .eq('tournament_id', id);
-
-      if (teamError) {
-        console.warn('⚠️ Teams deletion warning:', teamError);
-      }
-
-      // Delete match invites
-      const { error: inviteError } = await supabase
-        .from('match_invites')
-        .delete()
-        .eq('tournament_id', id);
-
-      if (inviteError) {
-        console.warn('⚠️ Match invites deletion warning:', inviteError);
-      }
-
-      // Delete recurring schedules
-      const { error: scheduleError } = await supabase
-        .from('recurring_schedules')
-        .delete()
-        .eq('tournament_id', id);
-
-      if (scheduleError) {
-        console.warn('⚠️ Recurring schedules deletion warning:', scheduleError);
-      }
-
-      // Delete game sessions
-      const { error: sessionError } = await supabase
-        .from('game_sessions')
-        .delete()
-        .eq('tournament_id', id);
-
-      if (sessionError) {
-        console.warn('⚠️ Game sessions deletion warning:', sessionError);
-      }
-
-      // Delete tournament registrations
-      const { error: regError } = await supabase
-        .from('tournament_registrations')
-        .delete()
-        .eq('tournament_id', id);
-
-      if (regError) {
-        console.warn('⚠️ Tournament registrations deletion warning:', regError);
-      }
-
-      // Finally, delete the tournament
-      console.log('🗑️ Deleting tournament...');
-      const { error: deleteError } = await supabase
-        .from('tournaments')
-        .delete()
-        .eq('id', id);
-
-      if (deleteError) {
-        throw new Error(`Failed to delete tournament: ${deleteError.message}`);
-      }
-
-      console.log('✅ Tournament and all related records deleted successfully');
-
-              // Log the deletion (best-effort)
-        try {
-          const { auditLogService } = await import('../lib/auditLog');
-          await auditLogService.logTournamentCreation(
-            existingTournament.organizer_id || '',
-            existingTournament.name,
-            { ...existingTournament, action: 'deleted' }
-          );
-          console.log('✅ Deletion audit log created');
-        } catch (auditError) {
-          console.warn('⚠️ Audit logging failed (non-critical):', auditError);
-        }
-
-      return { success: true, message: 'Tournament deleted successfully' };
-    } catch (error) {
-      console.error('❌ Tournament deletion failed:', error);
-      throw error;
-    }
-  },
-
-  // Join tournament directly (no approval required)
-  async joinTournament(tournamentId: string, userId: string, userData: any) {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase not connected.');
-    }
-
-    const { data, error } = await supabase
-      .from('tournament_registrations')
-      .insert([{
-        tournament_id: tournamentId,
-        player_id: userId,
-        player_name: userData.full_name,
-        email: userData.email,
-        phone: userData.phone || '',
-        age: userData.age || 18,
-        experience_level: userData.experience_level || 'beginner',
-        team_name: userData.team_name,
-        emergency_contact: userData.emergency_contact || '',
-        medical_conditions: userData.medical_conditions || '',
-        status: 'registered',
-        entry_fee_paid: false,
-        payment_status: 'pending'
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  // Leave tournament
-  async leaveTournament(tournamentId: string, userId: string) {
+  // Delete tournament
+  async deleteTournament(id: string): Promise<void> {
     if (!isSupabaseConfigured) {
       throw new Error('Supabase not connected.');
     }
 
     const { error } = await supabase
-      .from('tournament_registrations')
+      .from('tournaments')
       .delete()
-      .eq('tournament_id', tournamentId)
-      .eq('player_id', userId);
+      .eq('id', id);
 
     if (error) throw error;
-    return { success: true };
   },
 
-  // Clear tournament cache across the application
-  clearTournamentCache() {
-    try {
-      localStorage.removeItem('tournaments_cache');
-      localStorage.removeItem('approved_tournaments');
-      localStorage.removeItem('player_tournaments');
-      sessionStorage.removeItem('tournaments');
-      console.log('🧹 Tournament cache cleared');
-    } catch (error) {
-      console.warn('⚠️ Failed to clear cache:', error);
-    }
-  },
-
-  // Broadcast tournament deletion to all connected clients
-  broadcastTournamentDeletion(tournamentId: string) {
-    try {
-      window.dispatchEvent(
-        new CustomEvent('tournamentDeleted', {
-          detail: { tournamentId },
-        })
-      );
-      console.log('📡 Tournament deletion broadcasted');
-    } catch (error) {
-      console.warn('⚠️ Failed to broadcast deletion:', error);
-    }
-  },
-
-  // Get all tournaments for admin
-  async getAllTournaments() {
+  // Get tournaments by organizer
+  async getTournamentsByOrganizer(organizerId: string): Promise<Tournament[]> {
     if (!isSupabaseConfigured) {
-      throw new Error(
-        'Supabase not connected. Please connect to Supabase to manage tournaments.'
-      );
+      throw new Error('Supabase not connected.');
     }
-
-    console.log(
-      '📊 Admin fetching ALL tournaments (including pending, rejected, etc.)...'
-    );
 
     const { data, error } = await supabase
       .from('tournaments')
       .select('*')
+      .eq('organizer_id', organizerId)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('❌ Failed to fetch tournaments for admin:', error);
-      throw new Error(`Admin query failed: ${error.message}`);
-    }
-
-    console.log(
-      `✅ Admin loaded ${data?.length || 0} tournaments (all statuses included)`
-    );
-    console.log('📊 Status breakdown:', {
-      pending: data?.filter((t) => t.status === 'pending_approval').length || 0,
-      approved: data?.filter((t) => t.status === 'approved').length || 0,
-      rejected: data?.filter((t) => t.status === 'rejected').length || 0,
-      completed: data?.filter((t) => t.status === 'completed').length || 0,
-    });
-
+    if (error) throw error;
     return data || [];
   },
+
+  // Get tournaments by sport type
+  async getTournamentsBySport(sportType: string): Promise<Tournament[]> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase not connected.');
+    }
+
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select('*')
+      .eq('sport_type', sportType)
+      .eq('visibility', 'public')
+      .in('status', ['approved', 'active', 'completed'])
+      .order('start_date', { ascending: true });
+
+    if (error) throw error;
+    
+    // Filter out tournaments that are not visible to players
+    const visibleTournaments = (data || []).filter(tournament => 
+      tournamentUtils.isTournamentVisible(tournament)
+    );
+    
+    return visibleTournaments;
+  },
+
+  // Get tournaments by location (province/district)
+  async getTournamentsByLocation(province?: string, district?: string): Promise<Tournament[]> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase not connected.');
+    }
+
+    let query = supabase
+      .from('tournaments')
+      .select('*')
+      .eq('visibility', 'public')
+      .in('status', ['approved', 'active', 'completed']);
+
+    if (province) {
+      query = query.eq('province', province);
+    }
+    if (district) {
+      query = query.eq('district', district);
+    }
+
+    const { data, error } = await query.order('start_date', { ascending: true });
+
+    if (error) throw error;
+    
+    // Filter out tournaments that are not visible to players
+    const visibleTournaments = (data || []).filter(tournament => 
+      tournamentUtils.isTournamentVisible(tournament)
+    );
+    
+    return visibleTournaments;
+  },
+
+  // Get upcoming tournaments
+  async getUpcomingTournaments(): Promise<Tournament[]> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase not connected.');
+    }
+
+    const now = new Date();
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select('*')
+      .eq('visibility', 'public')
+      .in('status', ['approved', 'active'])
+      .gte('start_date', now.toISOString())
+      .order('start_date', { ascending: true });
+
+    if (error) throw error;
+    
+    // Filter out tournaments that are not visible to players
+    const visibleTournaments = (data || []).filter(tournament => 
+      tournamentUtils.isTournamentVisible(tournament)
+    );
+    
+    return visibleTournaments;
+  },
+
+  // Get active tournaments
+  async getActiveTournaments(): Promise<Tournament[]> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase not connected.');
+    }
+
+    const now = new Date();
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select('*')
+      .eq('visibility', 'public')
+      .eq('status', 'active')
+      .lte('start_date', now.toISOString())
+      .gte('end_date', now.toISOString())
+      .order('start_date', { ascending: true });
+
+    if (error) throw error;
+    
+    // Filter out tournaments that are not visible to players
+    const visibleTournaments = (data || []).filter(tournament => 
+      tournamentUtils.isTournamentVisible(tournament)
+    );
+    
+    return visibleTournaments;
+  },
+
+  // Get completed tournaments
+  async getCompletedTournaments(): Promise<Tournament[]> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase not connected.');
+    }
+
+    const now = new Date();
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select('*')
+      .eq('visibility', 'public')
+      .eq('status', 'completed')
+      .lt('end_date', now.toISOString())
+      .order('end_date', { ascending: false });
+
+    if (error) throw error;
+    
+    // Filter out tournaments that are not visible to players
+    const visibleTournaments = (data || []).filter(tournament => 
+      tournamentUtils.isTournamentVisible(tournament)
+    );
+    
+    return visibleTournaments;
+  }
 };
 
 // Registration operations
@@ -589,7 +440,12 @@ export const registrationService = {
         : null,
     };
 
-    validateRegistrationData(sanitizedRegistration);
+    // Remove null values to avoid validation issues
+    const cleanedRegistration = Object.fromEntries(
+      Object.entries(sanitizedRegistration).filter(([_, value]) => value !== null)
+    );
+
+    validateRegistrationData(cleanedRegistration);
 
     const { data, error } = await supabase
       .from('tournament_registrations')

@@ -57,6 +57,7 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
   useEffect(() => {
     if (activeTab === 'overview') {
       loadStats();
+      loadVenues(); // Also load venues for overview display
     } else if (activeTab === 'leads') {
       loadLeads();
     } else if (activeTab === 'claims') {
@@ -125,7 +126,45 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
       }
 
       console.log('✅ Database returned:', data);
-      setVenues(data || []);
+      console.log('📊 Venues loaded for overview:', data?.length || 0, 'venues');
+      console.log('🔍 Sample venue data:', data?.[0]);
+      
+      if (data && data.length > 0) {
+        console.log('✅ Setting venues state with', data.length, 'venues');
+        setVenues(data);
+      } else {
+        console.log('⚠️ No venues found in database');
+        
+        // Check if we're in development mode and show sample data
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 Development mode: Creating sample venue data for testing');
+          const sampleVenues = [
+            {
+              id: 'sample-1',
+              name: 'Sample Futsal Court',
+              description: 'A sample venue for testing purposes',
+              district: 'Kathmandu',
+              province: 'Bagmati',
+              status: 'seeded',
+              data_quality_score: 75,
+              created_at: new Date().toISOString()
+            },
+            {
+              id: 'sample-2', 
+              name: 'Test Basketball Court',
+              description: 'Another sample venue for testing',
+              district: 'Lalitpur',
+              province: 'Bagmati',
+              status: 'verified',
+              data_quality_score: 85,
+              created_at: new Date().toISOString()
+            }
+          ];
+          setVenues(sampleVenues);
+        } else {
+          setVenues([]);
+        }
+      }
 
     } catch (error) {
       console.error('❌ Error loading venues:', error);
@@ -134,7 +173,7 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
       setVenues([]);
     } finally {
       setVenuesLoading(false);
-      console.log('🏁 Finished loading venues');
+      console.log('🏁 Finished loading venues. State now contains:', venues.length, 'venues');
     }
   };
 
@@ -182,6 +221,77 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
   const handleEditVenue = (venueId: string) => {
     // Navigate to venue edit page
     window.open(`/admin/venue/${venueId}/edit`, '_blank');
+  };
+
+  // Handler functions for venue actions
+  const handleApproveVenue = async (venueId: string) => {
+    try {
+      setLoading(true);
+      await venueWorkflowService.updateVenueStatus(venueId, 'verified', user?.id || 'admin');
+      toast.success('Venue approved successfully!');
+      loadVenues(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to approve venue:', error);
+      toast.error('Failed to approve venue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectVenue = async (venueId: string, reason: string) => {
+    try {
+      setLoading(true);
+      await venueWorkflowService.updateVenueStatus(venueId, 'suspended', user?.id || 'admin');
+      toast.success('Venue rejected successfully!');
+      loadVenues(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to reject venue:', error);
+      toast.error('Failed to reject venue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClaimVenue = async (venueId: string, claimData: any) => {
+    try {
+      setLoading(true);
+      await venueWorkflowService.claimVenue(venueId, user?.id || 'admin');
+      toast.success('Venue claimed successfully!');
+      loadVenues(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to claim venue:', error);
+      toast.error('Failed to claim venue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyVenue = async (venueId: string) => {
+    try {
+      setLoading(true);
+      await venueWorkflowService.updateVenueStatus(venueId, 'verified', user?.id || 'admin');
+      toast.success('Venue verified successfully!');
+      loadVenues(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to verify venue:', error);
+      toast.error('Failed to verify venue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateVenueStatus = async (venueId: string, newStatus: string) => {
+    try {
+      setLoading(true);
+      await venueWorkflowService.updateVenueStatus(venueId, newStatus, user?.id || 'admin');
+      toast.success(`Venue status updated to ${newStatus}!`);
+      loadVenues(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to update venue status:', error);
+      toast.error('Failed to update venue status');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -258,6 +368,44 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
             animate={{ opacity: 1 }}
             className="space-y-6"
           >
+            {/* Overview Summary */}
+            <Card className="p-6 bg-blue-50 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">Overview Summary</h3>
+                  <p className="text-blue-700">
+                    {venuesLoading ? 'Loading venue data...' : 
+                     venues.length === 0 ? 'No venues found in the system' :
+                     `Currently displaying ${venues.length} venues with real-time data`
+                    }
+                  </p>
+                  {/* Debug Info */}
+                  <div className="mt-2 text-xs text-blue-600">
+                    <p>Debug: venues.length = {venues.length}</p>
+                    <p>venuesLoading = {venuesLoading.toString()}</p>
+                    <p>State venues: {JSON.stringify(venues.slice(0, 2).map(v => ({ id: v.id, name: v.name, status: v.status })))}</p>
+                    <Button
+                      onClick={() => {
+                        console.log('🔄 Manual refresh triggered');
+                        loadVenues();
+                        loadStats();
+                      }}
+                      size="sm"
+                      className="mt-2 text-xs"
+                    >
+                      🔄 Manual Refresh
+                    </Button>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-blue-600">Last Updated</p>
+                  <p className="text-lg font-semibold text-blue-900">
+                    {venuesLoading ? '...' : new Date().toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            </Card>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card className="p-6">
@@ -267,7 +415,9 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Venues</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalVenues}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {venuesLoading ? '...' : venues.length}
+                    </p>
                   </div>
                 </div>
               </Card>
@@ -279,7 +429,9 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">New Leads</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.newLeads}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {venuesLoading ? '...' : venues.filter(v => v.status === 'seeded').length}
+                    </p>
                   </div>
                 </div>
               </Card>
@@ -291,11 +443,92 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Pending Claims</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.pendingClaims}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {venuesLoading ? '...' : venues.filter(v => v.status === 'claimed' && !v.verified).length}
+                    </p>
                   </div>
                 </div>
               </Card>
             </div>
+
+            {/* Venue Status Distribution */}
+            {venuesLoading ? (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Venue Status Distribution</h3>
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">Loading venue data...</span>
+                </div>
+              </Card>
+            ) : venues.length > 0 ? (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Venue Status Distribution</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {(() => {
+                    const statusCounts = venues.reduce((acc, venue) => {
+                      const status = venue.status || 'seeded';
+                      acc[status] = (acc[status] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>);
+
+                    const statusColors = {
+                      seeded: 'bg-blue-100 text-blue-800',
+                      verified: 'bg-green-100 text-green-800',
+                      claimed: 'bg-purple-100 text-purple-800',
+                      suspended: 'bg-red-100 text-red-800',
+                      pending: 'bg-yellow-100 text-yellow-800'
+                    };
+
+                    return Object.entries(statusCounts).map(([status, count]) => (
+                      <div key={status} className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mb-2 ${statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}`}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </div>
+                        <p className="text-2xl font-bold text-gray-900">{count}</p>
+                        <p className="text-sm text-gray-500">venues</p>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </Card>
+            ) : null}
+
+            {/* Venue Quality Summary */}
+            {venuesLoading ? (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Venue Quality Overview</h3>
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">Loading quality data...</span>
+                </div>
+              </Card>
+            ) : venues.length > 0 ? (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Venue Quality Overview</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">Average Quality Score</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {Math.round(venues.reduce((sum, v) => sum + (v.data_quality_score || 0), 0) / venues.length)}/100
+                    </p>
+                  </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">High Quality Venues</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {venues.filter(v => (v.data_quality_score || 0) >= 80).length}
+                    </p>
+                    <p className="text-sm text-gray-500">≥80 score</p>
+                  </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">Needs Improvement</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {venues.filter(v => (v.data_quality_score || 0) < 50).length}
+                    </p>
+                    <p className="text-sm text-gray-500">&lt;50 score</p>
+                  </div>
+                </div>
+              </Card>
+            ) : null}
 
             {/* Quick Actions */}
             <Card className="p-6">
@@ -334,6 +567,110 @@ export const VenueWorkflowManagement: React.FC<VenueWorkflowManagementProps> = (
                   View Revenue
                 </Button>
               </div>
+            </Card>
+
+            {/* Recent Venues */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Recent Venues</h3>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={() => {
+                      loadVenues();
+                      loadStats();
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    disabled={venuesLoading}
+                  >
+                    <div className={`h-4 w-4 ${venuesLoading ? 'animate-spin' : ''}`}>
+                      {venuesLoading ? '⟳' : '↻'}
+                    </div>
+                    Refresh
+                  </Button>
+                  <Button
+                    onClick={() => setActiveTab('venues')}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    View All Venues
+                  </Button>
+                </div>
+              </div>
+              
+              {venuesLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">Loading venues...</span>
+                </div>
+              ) : venues.length === 0 ? (
+                <div className="text-center py-8">
+                  <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No venues found</h4>
+                  <p className="text-gray-600 mb-4">Get started by adding your first venue.</p>
+                  <Button onClick={() => setShowAddVenueForm(true)}>
+                    Add Your First Venue
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {venues.slice(0, 5).map((venue) => (
+                    <div key={venue.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <MapPin className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">{venue.name}</h4>
+                          <p className="text-sm text-gray-500">
+                            {venue.district}, {venue.province}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <VenueStatusBadge status={venue.status || 'seeded'} />
+                            <span className="text-xs text-gray-500">
+                              Quality: {venue.data_quality_score || 0}/100
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewVenue(venue.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditVenue(venue.id)}
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {venues.length > 5 && (
+                    <div className="text-center pt-4">
+                      <Button
+                        onClick={() => setActiveTab('venues')}
+                        variant="outline"
+                        className="flex items-center gap-2 mx-auto"
+                      >
+                        <MapPin className="h-4 w-4" />
+                        View All {venues.length} Venues
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
           </motion.div>
         )}

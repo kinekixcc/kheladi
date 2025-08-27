@@ -1,25 +1,43 @@
 import React from 'react';
-import { Calculator, Info } from 'lucide-react';
+import { Calculator, Info, Users } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { PLATFORM_FEES } from '../../types';
 
 interface PlatformFeeCalculatorProps {
   entryFee: number;
-  participants: number;
-  isPremiumListing?: boolean;
+  maxTeams: number;
+  teamSizeMax: number;
+  entryFeeType: 'per_player' | 'per_team';
+  registrationMode: 'individual' | 'team' | 'hybrid';
 }
 
 export const PlatformFeeCalculator: React.FC<PlatformFeeCalculatorProps> = ({
   entryFee,
-  participants,
-  isPremiumListing = false
+  maxTeams,
+  teamSizeMax,
+  entryFeeType,
+  registrationMode
 }) => {
-  const totalRevenue = entryFee * participants;
-  const commissionRate = PLATFORM_FEES.find(f => f.type === 'tournament_commission')?.percentage || 3;
+  // Calculate total revenue based on entry fee type
+  let totalRevenue: number;
+  let displayLabel: string;
+  let displayValue: number;
+  
+  if (entryFeeType === 'per_team') {
+    // Per team: entry fee × max teams
+    totalRevenue = entryFee * maxTeams;
+    displayLabel = "Entry Fee per Team:";
+    displayValue = entryFee;
+  } else {
+    // Per player: entry fee × max teams × team size
+    totalRevenue = entryFee * maxTeams * teamSizeMax;
+    displayLabel = "Entry Fee per Player:";
+    displayValue = entryFee;
+  }
+  
+  const commissionRate = PLATFORM_FEES.find(f => f.type === 'tournament_commission')?.percentage || 5;
   const platformCommission = (totalRevenue * commissionRate) / 100;
-  const premiumListingFee = isPremiumListing ? 200 : 0;
-  const totalPlatformFees = platformCommission + premiumListingFee;
-  const organizerEarnings = totalRevenue - totalPlatformFees;
+  const organizerEarnings = totalRevenue - platformCommission;
 
   return (
     <Card className="p-6">
@@ -30,18 +48,22 @@ export const PlatformFeeCalculator: React.FC<PlatformFeeCalculatorProps> = ({
 
       <div className="space-y-3">
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">Entry Fee per Participant:</span>
-          <span className="font-medium">रू {entryFee.toLocaleString()}</span>
+          <span className="text-gray-600">{displayLabel}</span>
+          <span className="font-medium">रू {displayValue.toLocaleString()}</span>
         </div>
         
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">Expected Participants:</span>
-          <span className="font-medium">{participants}</span>
+          <span className="text-gray-600">
+            {entryFeeType === 'per_team' ? 'Max Teams:' : 'Expected Participants:'}
+          </span>
+          <span className="font-medium">
+            {entryFeeType === 'per_team' ? maxTeams : maxTeams * teamSizeMax}
+          </span>
         </div>
         
         <div className="flex justify-between items-center border-t pt-2">
           <span className="text-gray-600">Total Revenue:</span>
-          <span className="font-semibold text-green-600">रू {totalRevenue.toLocaleString()}</span>
+          <span className="text-semibold text-green-600">रू {totalRevenue.toLocaleString()}</span>
         </div>
         
         <div className="bg-gray-50 rounded-lg p-3 space-y-2">
@@ -53,16 +75,9 @@ export const PlatformFeeCalculator: React.FC<PlatformFeeCalculatorProps> = ({
             <span className="text-red-600">-रू {platformCommission.toLocaleString()}</span>
           </div>
           
-          {isPremiumListing && (
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Premium Listing Fee</span>
-              <span className="text-red-600">-रू {premiumListingFee.toLocaleString()}</span>
-            </div>
-          )}
-          
           <div className="flex justify-between items-center text-sm border-t pt-2">
             <span className="text-gray-600">Total Platform Fees:</span>
-            <span className="text-red-600 font-medium">-रू {totalPlatformFees.toLocaleString()}</span>
+            <span className="text-red-600 font-medium">-रू {platformCommission.toLocaleString()}</span>
           </div>
         </div>
         

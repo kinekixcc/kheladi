@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Kheleko</title>
+    <meta name="theme-color" content="#3b82f6">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 500px;
+        }
+        
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .app-name {
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .features h3 {
+            margin-bottom: 0.5rem;
+            color: #fbbf24;
+        }
+        
+        .features ul {
+            list-style: none;
+            text-align: left;
+        }
+        
+        .features li {
+            margin: 0.5rem 0;
+            padding-left: 1rem;
+            position: relative;
+        }
+        
+        .features li:before {
+            content: "🏆";
+            position: absolute;
+            left: 0;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🏟️</div>
+        <h1>You're Offline</h1>
+        <p>Don't worry! <span class="app-name">Kheleko</span> is designed to work offline.</p>
+        <p>Please check your internet connection and try again.</p>
+        
+        <div class="features">
+            <h3>What you can do offline:</h3>
+            <ul>
+                <li>View cached tournament information</li>
+                <li>Access your profile and settings</li>
+                <li>Browse previously loaded content</li>
+                <li>Prepare tournament data for when you're back online</li>
+            </ul>
+        </div>
+        
+        <button class="retry-btn" onclick="window.location.reload()">
+            🔄 Try Again
+        </button>
+    </div>
+    
+    <script>
+        // Check connection status
+        function checkConnection() {
+            if (navigator.onLine) {
+                console.log('✅ Connection restored');
+                // You could auto-refresh here or show a notification
+            } else {
+                console.log('❌ Still offline');
+            }
+        }
+        
+        // Listen for connection changes
+        window.addEventListener('online', checkConnection);
+        window.addEventListener('offline', () => {
+            console.log('❌ Connection lost');
+        });
+        
+        // Try to reconnect every 5 seconds
+        setInterval(() => {
+            if (!navigator.onLine) {
+                fetch('/manifest.json', { method: 'HEAD' })
+                    .then(() => {
+                        console.log('✅ Connection test successful');
+                        window.location.reload();
+                    })
+                    .catch(() => {
+                        console.log('❌ Still offline');
+                    });
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

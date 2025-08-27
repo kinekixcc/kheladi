@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, DollarSign, Users, Trophy, Calendar, Target } from 'lucide-react';
+import { TrendingUp, DollarSign, Users, Trophy, Calendar, Target, RefreshCw } from 'lucide-react';
 import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
-import { dummyPaymentProcessor } from '../../lib/dummyPaymentSystem';
 import { tournamentService } from '../../lib/database';
 
 interface RevenueAnalyticsProps {
@@ -15,64 +15,149 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ userType }) 
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+  console.log('🎯 RevenueAnalytics mounted with userType:', userType, 'user:', user?.id);
+
   useEffect(() => {
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('⏰ Revenue data loading timeout, setting fallback data');
+        setRevenueData({
+          totalRevenue: 0,
+          totalEarnings: 0,
+          monthlyGrowth: 0,
+          commissionEarned: 0,
+          subscriptionRevenue: 0,
+          tournaments: 0,
+          tournamentsHosted: 0,
+          activeUsers: 0,
+          totalParticipants: 0,
+          averageEntryFee: 0,
+          platformFeesDeducted: 0,
+          transactionCount: 0,
+          monthlyRevenue: 0
+        });
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
     loadRealRevenueData();
+
+    return () => clearTimeout(timeoutId);
   }, [userType, user]);
 
   const loadRealRevenueData = async () => {
     setLoading(true);
     try {
+      console.log('🔄 Loading revenue data for userType:', userType);
+      
       if (userType === 'platform') {
         // Calculate platform revenue from real tournament data
         const tournaments = await tournamentService.getAllTournaments();
+        console.log('📊 All tournaments loaded:', tournaments.length);
+        
         const approvedTournaments = tournaments.filter(t => t.status === 'approved' || t.status === 'completed');
+        console.log('✅ Approved tournaments:', approvedTournaments.length);
         
-        // Get revenue from dummy payment system
-        const paymentAnalytics = dummyPaymentProcessor.getRevenueAnalytics();
+        // Get real revenue from registrations
+        const { registrationService } = await import('../../lib/database');
+        const allRegistrations = await registrationService.getAllRegistrations();
+        console.log('📝 All registrations loaded:', allRegistrations.length);
         
-        const totalRevenue = paymentAnalytics.totalRevenue;
-        const commissionEarned = paymentAnalytics.platformCommission;
+        const confirmedRegistrations = allRegistrations.filter(reg => reg.status === 'confirmed');
+        console.log('✅ Confirmed registrations:', confirmedRegistrations.length);
+        
+        const totalRevenue = confirmedRegistrations.reduce((sum, reg) => sum + (reg.entry_fee || 0), 0);
+        console.log('💰 Total revenue calculated:', totalRevenue);
+        
+        const commissionEarned = totalRevenue * 0.15; // 15% platform fee
         const subscriptionRevenue = 0; // Would come from subscription data
         
-        setRevenueData({
+        const revenueDataToSet = {
           totalRevenue,
-          monthlyRevenue: paymentAnalytics.monthlyRevenue,
-          monthlyGrowth: paymentAnalytics.monthlyRevenue > 0 ? 15 : 0,
+          monthlyRevenue: totalRevenue * 0.3, // Estimate 30% of total as monthly
+          monthlyGrowth: totalRevenue > 0 ? 15 : 0,
           commissionEarned,
           subscriptionRevenue,
           tournaments: approvedTournaments.length,
-          activeUsers: paymentAnalytics.transactionCount,
-          transactionCount: paymentAnalytics.transactionCount,
-          averageTransaction: paymentAnalytics.averageTransaction
-        });
+          activeUsers: confirmedRegistrations.length,
+          transactionCount: confirmedRegistrations.length,
+          averageTransaction: confirmedRegistrations.length > 0 ? totalRevenue / confirmedRegistrations.length : 0
+        };
+        
+        console.log('📊 Platform revenue data to set:', revenueDataToSet);
+        setRevenueData(revenueDataToSet);
+        
       } else {
         // Calculate organizer revenue from their tournaments
         if (user?.id) {
-          const tournaments = await tournamentService.getTournamentsByOrganizer(user.id);
-          const approvedTournaments = tournaments.filter(t => t.status === 'approved' || t.status === 'completed');
+          console.log('👤 Loading organizer data for user:', user.id);
           
-          // Get organizer-specific revenue from dummy payment system
-          const paymentAnalytics = dummyPaymentProcessor.getRevenueAnalytics(user.id);
-          
-          const totalRevenue = paymentAnalytics.totalRevenue;
-          const platformFeesDeducted = paymentAnalytics.platformCommission;
-          const totalEarnings = paymentAnalytics.organizerEarnings;
-          const totalParticipants = approvedTournaments.reduce((sum, t) => sum + (t.current_participants || 0), 0);
-          
+          try {
+            const tournaments = await tournamentService.getTournamentsByOrganizer(user.id);
+            console.log('🏆 Organizer tournaments:', tournaments.length);
+            
+            const approvedTournaments = tournaments.filter(t => t.status === 'approved' || t.status === 'completed');
+            console.log('✅ Approved organizer tournaments:', approvedTournaments.length);
+            
+            // Get real organizer revenue from registrations
+            const { registrationService } = await import('../../lib/database');
+            const organizerRegistrations = await registrationService.getOrganizerRegistrations(user.id);
+            console.log('📝 Organizer registrations:', organizerRegistrations.length);
+            
+            const confirmedRegistrations = organizerRegistrations.filter(reg => reg.status === 'confirmed');
+            console.log('✅ Confirmed organizer registrations:', confirmedRegistrations.length);
+            
+            const totalRevenue = confirmedRegistrations.reduce((sum, reg) => sum + (reg.entry_fee || 0), 0);
+            console.log('💰 Organizer total revenue:', totalRevenue);
+            
+            const platformFeesDeducted = totalRevenue * 0.15; // 15% platform fee
+            const totalEarnings = totalRevenue - platformFeesDeducted;
+            const totalParticipants = approvedTournaments.reduce((sum, t) => sum + (t.current_participants || 0), 0);
+            
+            const revenueDataToSet = {
+              totalEarnings,
+              monthlyRevenue: totalRevenue * 0.3, // Estimate 30% of total as monthly
+              monthlyGrowth: totalRevenue > 0 ? 12 : 0,
+              tournamentsHosted: approvedTournaments.length,
+              totalParticipants,
+              averageEntryFee: confirmedRegistrations.length > 0 ? totalRevenue / confirmedRegistrations.length : 0,
+              platformFeesDeducted,
+              transactionCount: confirmedRegistrations.length
+            };
+            
+            console.log('📊 Organizer revenue data to set:', revenueDataToSet);
+            setRevenueData(revenueDataToSet);
+          } catch (organizerError) {
+            console.error('❌ Error loading organizer data:', organizerError);
+            // Set default organizer data if there's an error
+            setRevenueData({
+              totalEarnings: 0,
+              monthlyRevenue: 0,
+              monthlyGrowth: 0,
+              tournamentsHosted: 0,
+              totalParticipants: 0,
+              averageEntryFee: 0,
+              platformFeesDeducted: 0,
+              transactionCount: 0
+            });
+          }
+        } else {
+          // No user ID, set default data
           setRevenueData({
-            totalEarnings,
-            monthlyRevenue: paymentAnalytics.monthlyRevenue,
-            monthlyGrowth: paymentAnalytics.monthlyRevenue > 0 ? 12 : 0,
-            tournamentsHosted: approvedTournaments.length,
-            totalParticipants,
-            averageEntryFee: paymentAnalytics.averageTransaction,
-            platformFeesDeducted,
-            transactionCount: paymentAnalytics.transactionCount
+            totalEarnings: 0,
+            monthlyRevenue: 0,
+            monthlyGrowth: 0,
+            tournamentsHosted: 0,
+            totalParticipants: 0,
+            averageEntryFee: 0,
+            platformFeesDeducted: 0,
+            transactionCount: 0
           });
         }
       }
     } catch (error) {
-      console.error('Error loading revenue data:', error);
+      console.error('❌ Error loading revenue data:', error);
       // Fallback to zero values instead of fake data
       setRevenueData({
         totalRevenue: 0,
@@ -97,6 +182,18 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ userType }) 
   if (loading) {
     return (
       <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 mb-4">Loading revenue data...</p>
+          <Button 
+            onClick={loadRealRevenueData} 
+            variant="outline"
+            className="flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry
+          </Button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="p-6 animate-pulse">
@@ -110,13 +207,34 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ userType }) 
 
   if (!revenueData) {
     return (
-      <Card className="p-8 text-center">
-        <p className="text-gray-600">Failed to load revenue data</p>
-        <Button onClick={loadRealRevenueData} className="mt-4">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
-        </Button>
-      </Card>
+      <div className="space-y-6">
+        <Card className="p-8 text-center">
+          <p className="text-gray-600 mb-4">No revenue data available</p>
+          <p className="text-sm text-gray-500 mb-4">
+            {userType === 'organizer' 
+              ? 'Start creating tournaments to see your revenue analytics here.'
+              : 'No platform revenue data available yet.'
+            }
+          </p>
+          <Button onClick={loadRealRevenueData} className="mt-4">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh Data
+          </Button>
+        </Card>
+        
+        {/* Show empty state with helpful information */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="p-6 text-center">
+              <div className="h-16 bg-gray-100 rounded-lg flex items-center justify-center mb-3">
+                <DollarSign className="h-8 w-8 text-gray-400" />
+              </div>
+              <p className="text-2xl font-bold text-gray-300">रू 0</p>
+              <p className="text-sm text-gray-500">No data</p>
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 

@@ -89,9 +89,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   key.startsWith('sb-') || key.includes('supabase') || key.includes('auth')
                 );
                 keysToRemove.forEach(key => localStorage.removeItem(key));
+              } else if (event === 'USER_UPDATED') {
+                console.log('🔄 User updated, reloading profile');
+                if (session?.user) {
+                  await loadUserProfile(session.user);
+                }
               }
             } catch (error) {
               console.error('❌ Error handling auth state change:', error);
+              // Reset loading state on error
+              setLoading(false);
               // Don't crash the app, just log the error
             }
           }
@@ -124,18 +131,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadUserProfile = async (supabaseUser: any) => {
     try {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile loading timeout')), 15000)
+      );
+      
       // Try to get profile from database, create if doesn't exist
-      let profile = await profileService.getProfile(supabaseUser.id);
+      const profilePromise = profileService.getProfile(supabaseUser.id);
+      let profile = await Promise.race([profilePromise, timeoutPromise]) as any;
       
       // If profile doesn't exist, create it
       if (!profile) {
         console.log('📝 Creating new profile for user:', supabaseUser.email);
-        profile = await profileService.upsertProfile({
+        const createProfilePromise = profileService.upsertProfile({
           id: supabaseUser.id,
           full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email.split('@')[0],
           role: supabaseUser.user_metadata?.role || 'player',
           phone: supabaseUser.user_metadata?.phone || null
         });
+        profile = await Promise.race([createProfilePromise, timeoutPromise]) as any;
         console.log('✅ Profile created successfully');
       }
       
@@ -149,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       
       setUser(userData);
+      setLoading(false); // Ensure loading state is reset
       localStorage.setItem('current_user', JSON.stringify(userData));
       console.log('✅ User profile loaded:', userData.email, 'Role:', userData.role);
       
@@ -166,6 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       
       setUser(userData);
+      setLoading(false); // Ensure loading state is reset
       localStorage.setItem('current_user', JSON.stringify(userData));
       console.log('✅ User loaded with auth metadata:', userData.email);
     }
@@ -178,7 +194,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (isSupabaseConfigured) {
         console.log('🔗 Attempting Supabase authentication...');
         
-        const { data, error } = await supabaseSignIn(email, password);
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Login timeout - please try again')), 30000)
+        );
+        
+        const loginPromise = supabaseSignIn(email, password);
+        const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
         
         if (error) {
           console.error('❌ Supabase login failed:', error.message);

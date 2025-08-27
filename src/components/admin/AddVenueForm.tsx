@@ -7,6 +7,7 @@ import { Card } from '../ui/Card';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
+import { imageUploadService } from '../../lib/imageUpload';
 
 interface AddVenueFormProps {
   onClose: () => void;
@@ -46,33 +47,35 @@ export const AddVenueForm: React.FC<AddVenueFormProps> = ({ onClose, onSuccess }
     try {
       setIsSubmitting(true);
 
-      // Convert images to base64 if any (unless skipped)
-      let base64Images: string[] = [];
-      if (selectedFiles.length > 0 && !skipImages) {
-        console.log('📸 Converting images to base64...');
-        
-        for (let i = 0; i < selectedFiles.length; i++) {
-          const file = selectedFiles[i];
-          console.log(`🔄 Converting ${i + 1}/${selectedFiles.length}: ${file.name}`);
+              // Upload images to Supabase storage if any (unless skipped)
+        let imageUrls: string[] = [];
+        if (selectedFiles.length > 0 && !skipImages) {
+          console.log('📸 Uploading images to Supabase storage...');
           
           try {
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = () => reject(new Error(`Failed to convert ${file.name}`));
-              reader.readAsDataURL(file);
-            });
-
-            base64Images.push(base64);
-            console.log('✅ Image converted to base64:', file.name);
-          } catch (conversionError) {
-            console.error('Image conversion error:', conversionError);
-            toast.error(`Failed to convert ${file.name}. Please try with a smaller image.`);
+            const uploadResults = await imageUploadService.uploadMultipleImages(selectedFiles, 'venue-images');
+            
+            const successfulUploads = uploadResults.filter(result => result.success);
+            const failedUploads = uploadResults.filter(result => !result.success);
+            
+            if (successfulUploads.length > 0) {
+              imageUrls = successfulUploads.map(result => result.url!).filter(Boolean);
+              console.log('✅ Images uploaded successfully:', imageUrls.length);
+            }
+            
+            if (failedUploads.length > 0) {
+              console.error('❌ Failed uploads:', failedUploads);
+              toast.error(`${failedUploads.length} images failed to upload`);
+              setIsSubmitting(false);
+              return;
+            }
+          } catch (error) {
+            console.error('❌ Image upload error:', error);
+            toast.error('Failed to upload images. Please try again.');
             setIsSubmitting(false);
             return;
           }
         }
-      }
 
       console.log('🏟️ Creating simple venue data...');
 
@@ -86,7 +89,7 @@ export const AddVenueForm: React.FC<AddVenueFormProps> = ({ onClose, onSuccess }
         contact_phone: formData.contact_phone,
         contact_email: formData.contact_email,
         price_per_hour: formData.price_per_hour,
-        images: base64Images,
+        images: imageUrls,
         sports_types: ['General'], // Default sport type
         amenities: [], // Empty amenities for now
         rating: 0,
@@ -125,7 +128,7 @@ export const AddVenueForm: React.FC<AddVenueFormProps> = ({ onClose, onSuccess }
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
-    // Filter files by size (5MB limit for base64 storage)
+            // Filter files by size (5MB limit for Supabase storage)
     const validFiles = files.filter(file => {
       if (file.size > 5 * 1024 * 1024) { // 5MB
         toast.error(`${file.name} is too large. Please use images under 5MB.`);

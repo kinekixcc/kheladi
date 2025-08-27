@@ -25,17 +25,8 @@ export const tournamentValidationSchema = z.object({
     .min(0, 'Prize pool cannot be negative')
     .max(1000000, 'Prize pool cannot exceed रू 1,000,000'),
   
-  max_participants: z.number()
-    .min(2, 'Minimum 2 participants required')
-    .max(1000, 'Maximum 1000 participants allowed'),
-  
-  max_teams: z.number()
-    .min(2, 'Minimum 2 teams required')
-    .max(100, 'Maximum 100 teams allowed'),
-  
-  team_size: z.number()
-    .min(1, 'Team size must be at least 1')
-    .max(20, 'Team size cannot exceed 20'),
+  // Team registration settings (only fields that exist in actual database)
+  max_teams: z.number().min(1, 'Minimum 1 team required').max(100, 'Maximum 100 teams allowed'),
   
   start_date: z.string()
     .min(1, 'Start date is required'),
@@ -98,23 +89,24 @@ export const tournamentValidationSchema = z.object({
 
 // Registration validation schema
 export const registrationValidationSchema = z.object({
-  player_name: z.string()
-    .min(2, 'Player name must be at least 2 characters')
-    .max(50, 'Player name must be less than 50 characters')
-    .regex(/^[a-zA-Z\s]+$/, 'Player name can only contain letters and spaces'),
+  tournament_id: z.string().min(1, 'Tournament ID is required'),
+  player_id: z.string().min(1, 'Player ID is required'),
+  status: z.enum(['registered', 'confirmed', 'rejected', 'cancelled']).default('registered'),
   
-  email: z.string()
-    .email('Invalid email address'),
+  // Individual player fields
+  player_name: z.string().optional().nullable(),
+  email: z.string().email('Invalid email address').optional().nullable(),
+  phone: z.string().optional().nullable(),
+  age: z.number().min(13, 'Must be at least 13 years old').max(100, 'Invalid age').optional().nullable(),
+  emergency_contact: z.string().optional().nullable(),
+  medical_conditions: z.string().optional().nullable(),
   
-  phone: z.string()
-    .regex(/^(\+977)?[0-9]{10}$/, 'Invalid Nepali phone number format'),
+  // Team fields (optional for tournaments that support teams)
+  team_name: z.string().optional().nullable(),
   
-  age: z.number()
-    .min(13, 'Must be at least 13 years old')
-    .max(100, 'Invalid age'),
-  
-  emergency_contact: z.string()
-    .regex(/^(\+977)?[0-9]{10}$/, 'Invalid emergency contact number')
+  // Common fields
+  registration_date: z.string().optional().nullable(),
+  transaction_id: z.string().optional().nullable()
 });
 
 // User profile validation schema
@@ -149,7 +141,8 @@ export const ratingValidationSchema = z.object({
 });
 
 // Sanitization functions
-export const sanitizeInput = (input: string): string => {
+export const sanitizeInput = (input: string | null | undefined): string | null => {
+  if (!input) return null;
   return input
     .trim()
     .replace(/[<>]/g, '') // Remove potential HTML tags
@@ -157,7 +150,9 @@ export const sanitizeInput = (input: string): string => {
     .replace(/on\w+=/gi, ''); // Remove event handlers
 };
 
-export const sanitizePhoneNumber = (phone: string): string => {
+export const sanitizePhoneNumber = (phone: string | null | undefined): string | null => {
+  if (!phone) return null;
+  
   // Remove all non-digit characters except +
   const cleaned = phone.replace(/[^\d+]/g, '');
   
@@ -173,7 +168,8 @@ export const sanitizePhoneNumber = (phone: string): string => {
   return cleaned;
 };
 
-export const sanitizeEmail = (email: string): string => {
+export const sanitizeEmail = (email: string | null | undefined): string | null => {
+  if (!email) return null;
   return email.toLowerCase().trim();
 };
 
@@ -183,9 +179,12 @@ export const validateTournamentData = (data: any) => {
     return tournamentValidationSchema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(error.errors.map(e => e.message).join(', '));
+      const issues = error.issues || [];
+      const messages = issues.map(issue => issue.message).join(', ');
+      throw new Error(messages || 'Tournament data validation failed. Please check all required fields.');
     }
-    throw error;
+    // Fallback error message if error structure is unexpected
+    throw new Error('Tournament data validation failed. Please check all required fields.');
   }
 };
 
@@ -194,9 +193,11 @@ export const validateRegistrationData = (data: any) => {
     return registrationValidationSchema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(error.errors.map(e => e.message).join(', '));
+      const issues = error.issues || [];
+      const messages = issues.map(issue => issue.message).join(', ');
+      throw new Error(messages || 'Registration data validation failed. Please check all required fields.');
     }
-    throw error;
+    throw new Error('Registration data validation failed. Please check all required fields.');
   }
 };
 
@@ -205,9 +206,11 @@ export const validateProfileData = (data: any) => {
     return profileValidationSchema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(error.errors.map(e => e.message).join(', '));
+      const issues = error.issues || [];
+      const messages = issues.map(issue => issue.message).join(', ');
+      throw new Error(messages || 'Profile data validation failed. Please check all required fields.');
     }
-    throw error;
+    throw new Error('Profile data validation failed. Please check all required fields.');
   }
 };
 
@@ -216,8 +219,10 @@ export const validateRatingData = (data: any) => {
     return ratingValidationSchema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(error.errors.map(e => e.message).join(', '));
+      const issues = error.issues || [];
+      const messages = issues.map(issue => issue.message).join(', ');
+      throw new Error(messages || 'Rating data validation failed. Please check all required fields.');
     }
-    throw error;
+    throw new Error('Rating data validation failed. Please check all required fields.');
   }
 };

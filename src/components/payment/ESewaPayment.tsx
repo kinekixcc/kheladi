@@ -14,6 +14,8 @@ interface ESewaPaymentProps {
   tournamentName: string;
   userId: string;
   onPaymentInitiated?: () => void;
+  onPaymentSuccess?: (paymentResult: any) => void;
+  isCommissionPayment?: boolean;
 }
 
 export const ESewaPayment: React.FC<ESewaPaymentProps> = ({
@@ -21,7 +23,9 @@ export const ESewaPayment: React.FC<ESewaPaymentProps> = ({
   tournamentId,
   tournamentName,
   userId,
-  onPaymentInitiated
+  onPaymentInitiated,
+  onPaymentSuccess,
+  isCommissionPayment = false
 }) => {
   const [loading, setLoading] = useState(false);
   const [useDummyPayment] = useState(true); // Use dummy payment system
@@ -44,8 +48,7 @@ export const ESewaPayment: React.FC<ESewaPaymentProps> = ({
         const result = await DummyPaymentInterface.showPaymentModal(paymentRequest);
         
         if (result.success) {
-          // Store payment info for success page
-          localStorage.setItem('pending_payment', JSON.stringify({
+          const paymentResult = {
             tournament_id: tournamentId,
             tournament_name: tournamentName,
             user_id: userId,
@@ -53,18 +56,26 @@ export const ESewaPayment: React.FC<ESewaPaymentProps> = ({
             transaction_uuid: result.transactionId,
             timestamp: result.timestamp,
             payment_method: result.paymentMethod
-          }));
-          
-          toast.success('Payment completed successfully!');
-          
-          // Redirect to success page
-          const urlParams = new URLSearchParams({
-            tournament_id: tournamentId,
-            user_id: userId,
-            transaction_uuid: result.transactionId
-          });
-          
-          window.location.href = `/payment/success?${urlParams.toString()}`;
+          };
+
+          if (isCommissionPayment && onPaymentSuccess) {
+            // For commission payments, use the callback instead of redirecting
+            toast.success('Commission payment completed successfully!');
+            onPaymentSuccess(paymentResult);
+          } else {
+            // For regular tournament registrations, store and redirect
+            localStorage.setItem('pending_payment', JSON.stringify(paymentResult));
+            toast.success('Payment completed successfully!');
+            
+            // Redirect to success page
+            const urlParams = new URLSearchParams({
+              tournament_id: tournamentId,
+              user_id: userId,
+              transaction_uuid: result.transactionId
+            });
+            
+            window.location.href = `/payment/success?${urlParams.toString()}`;
+          }
         } else {
           throw new Error('Payment failed');
         }

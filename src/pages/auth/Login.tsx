@@ -63,7 +63,13 @@ export const Login: React.FC = () => {
     try {
       console.log('🔑 Starting login for:', data.email);
       
-      const { error } = await signIn(data.email, data.password);
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Login timeout - please try again')), 30000)
+      );
+      
+      const loginPromise = signIn(data.email, data.password);
+      const { error } = await Promise.race([loginPromise, timeoutPromise]) as any;
       
       if (error) {
         console.error('❌ Login failed:', error.message);
@@ -81,6 +87,8 @@ export const Login: React.FC = () => {
           errorMessage = 'Too many login attempts. Please wait a few minutes before trying again.';
         } else if (error.message.includes('Supabase not configured')) {
           errorMessage = 'Database not configured. Please contact support.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Login is taking too long. Please try again.';
         }
         
         toast.error(errorMessage);
@@ -98,6 +106,8 @@ export const Login: React.FC = () => {
         errorMessage = 'Unable to connect to the database. Please check your internet connection.';
       } else if (error.message?.includes('ERR_NAME_NOT_RESOLVED')) {
         errorMessage = 'Database server not found. Please check your connection settings.';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = 'Login is taking too long. Please try again.';
       }
       
       toast.error(errorMessage);
