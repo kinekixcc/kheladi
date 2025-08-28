@@ -609,9 +609,9 @@ export const OrganizerDashboard: React.FC = () => {
       case 'active':
         return 'bg-blue-100 text-blue-800';
       case 'completed':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-black';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-black';
     }
   };
 
@@ -817,8 +817,8 @@ export const OrganizerDashboard: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading organizer dashboard...</p>
-          <p className="text-sm text-gray-500 mt-2">Please wait while we load your tournaments...</p>
+                  <p className="text-black">Loading organizer dashboard...</p>
+        <p className="text-sm text-black mt-2">Please wait while we load your tournaments...</p>
           <div className="mt-4">
             <Button 
               onClick={() => {
@@ -849,8 +849,8 @@ export const OrganizerDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="p-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
-          <p className="text-gray-600 mb-4">Please log in to access the organizer dashboard</p>
+                  <h2 className="text-xl font-semibold text-black mb-2">Authentication Required</h2>
+        <p className="text-black mb-4">Please log in to access the organizer dashboard</p>
           <Button onClick={() => navigate('/login')}>
             Go to Login
           </Button>
@@ -864,8 +864,8 @@ export const OrganizerDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="p-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-4">This dashboard is only available to tournament organizers</p>
+                  <h2 className="text-xl font-semibold text-black mb-2">Access Denied</h2>
+        <p className="text-black mb-4">This dashboard is only available to tournament organizers</p>
           <Button onClick={() => navigate('/')}>
             Go to Home
           </Button>
@@ -896,8 +896,8 @@ export const OrganizerDashboard: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">🏆</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to Your Organizer Dashboard</h1>
-          <p className="text-gray-600 mb-6">You haven't created any tournaments yet. Get started by creating your first tournament!</p>
+                  <h1 className="text-2xl font-bold text-black mb-4">Welcome to Your Organizer Dashboard</h1>
+        <p className="text-black mb-6">You haven't created any tournaments yet. Get started by creating your first tournament!</p>
           <Button 
             onClick={() => navigate('/create-tournament')}
             className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-medium shadow-md transition-all duration-200"
@@ -912,7 +912,7 @@ export const OrganizerDashboard: React.FC = () => {
                 loadingRef.current = true;
                 loadData();
               }}
-              className="px-4 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
+              className="px-4 py-2 bg-gray-50 text-black border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
             >
               Refresh Dashboard
             </Button>
@@ -945,19 +945,19 @@ export const OrganizerDashboard: React.FC = () => {
               </motion.h1>
               <motion.p 
                 variants={itemVariants}
-                className="text-gray-600 text-lg"
+                className="text-black text-lg"
               >
-                Welcome back, <span className="font-semibold text-gray-800">{user?.full_name}</span>! 🎯
+                                  Welcome back, <span className="font-semibold text-black">{user?.full_name}</span>! 🎯
               </motion.p>
               <motion.div 
                 variants={itemVariants}
                 className="flex items-center space-x-4 mt-3"
               >
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <div className="flex items-center space-x-2 text-sm text-black">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   <span>Dashboard Active</span>
                 </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <div className="flex items-center space-x-2 text-sm text-black">
                   <Clock className="h-4 w-4" />
                   <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
@@ -973,7 +973,7 @@ export const OrganizerDashboard: React.FC = () => {
               >
                 <Button 
                   variant="outline"
-                  className="bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
+                  className="bg-gray-50 border-gray-200 text-black hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
                   onClick={handleManualRefresh}
                   disabled={loading || isRefreshing}
                 >
@@ -1004,18 +1004,18 @@ export const OrganizerDashboard: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.05 }}
           className="mb-6"
         >
-          <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center justify-between text-sm text-black">
             <div className="flex items-center space-x-4">
               <span className="flex items-center">
                 <div className={`w-2 h-2 rounded-full mr-2 ${loading ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></div>
                 {loading ? 'Refreshing data...' : 'Data up to date'}
               </span>
               <span>Last updated: {lastRefreshTime.toLocaleTimeString()}</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-black">
                 Data version: {dataVersion}
               </span>
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-black">
               Smart refresh every 5 minutes when tab is active
             </div>
           </div>
@@ -1039,7 +1039,7 @@ export const OrganizerDashboard: React.FC = () => {
                 <div className="flex items-center justify-between relative z-10">
                   <div className="flex-1">
                     <motion.p 
-                      className="text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors duration-200"
+                      className="text-sm font-medium text-black mb-2 group-hover:text-black transition-colors duration-200"
                     >
                       {stat.title}
                     </motion.p>
@@ -1049,7 +1049,7 @@ export const OrganizerDashboard: React.FC = () => {
                       {stat.value}
                     </motion.p>
                     <motion.p 
-                      className="text-sm text-gray-500 mt-2 group-hover:text-gray-600 transition-colors duration-200"
+                      className="text-sm text-black mt-2 group-hover:text-black transition-colors duration-200"
                     >
                       {stat.change}
                     </motion.p>
@@ -1180,7 +1180,7 @@ export const OrganizerDashboard: React.FC = () => {
               /* Manage Participants Tab */
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold text-black">
                     Participant Management
                   </h2>
                   <div className="flex items-center space-x-2">
@@ -1193,7 +1193,7 @@ export const OrganizerDashboard: React.FC = () => {
                       <Download className="h-4 w-4 mr-1" />
                       Export CSV
                     </Button>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-black">
                       {filteredRegistrations.length} of {organizerRegistrations.length} registrations
                     </span>
                   </div>
@@ -1204,9 +1204,9 @@ export const OrganizerDashboard: React.FC = () => {
                   <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Search Participants
-                        </label>
+                                <label className="block text-sm font-medium text-black mb-1">
+          Search Participants
+        </label>
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                           <Input
@@ -1220,9 +1220,9 @@ export const OrganizerDashboard: React.FC = () => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tournament
-                        </label>
+                                <label className="block text-sm font-medium text-black mb-1">
+          Tournament
+        </label>
                         <select
                           value={selectedTournament}
                           onChange={(e) => setSelectedTournament(e.target.value)}
@@ -1238,9 +1238,9 @@ export const OrganizerDashboard: React.FC = () => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Status
-                        </label>
+                                <label className="block text-sm font-medium text-black mb-1">
+          Status
+        </label>
                         <select
                           value={statusFilter}
                           onChange={(e) => setStatusFilter(e.target.value)}
@@ -1254,9 +1254,9 @@ export const OrganizerDashboard: React.FC = () => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Items per page
-                        </label>
+                                <label className="block text-sm font-medium text-black mb-1">
+          Items per page
+        </label>
                         <select
                           value={itemsPerPage}
                           onChange={(e) => {
@@ -1293,10 +1293,10 @@ export const OrganizerDashboard: React.FC = () => {
                 {organizerRegistrations.length === 0 ? (
                   <div className="text-center py-8">
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <h3 className="text-lg font-medium text-black mb-2">
                       No registrations yet
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-black">
                       Player registrations will appear here once they sign up for your tournaments
                     </p>
                   </div>
@@ -1334,10 +1334,10 @@ export const OrganizerDashboard: React.FC = () => {
                     {filteredRegistrations.length === 0 ? (
                       <div className="text-center py-8">
                         <Filter className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        <h3 className="text-lg font-medium text-black mb-2">
                           No registrations match your filters
                         </h3>
-                        <p className="text-gray-600">
+                        <p className="text-black">
                           Try adjusting your search criteria or filters
                         </p>
                       </div>
@@ -1359,14 +1359,14 @@ export const OrganizerDashboard: React.FC = () => {
                                   registration.status === 'rejected' ? 'text-red-600' :
                                   'text-blue-600'
                                 }`} />
-                                <h4 className="font-semibold text-gray-900">
+                                <h4 className="font-semibold text-black">
                                   {registration.player_name}
                                 </h4>
                                 <span className={`px-2 py-1 text-xs rounded-full ${
                                   registration.experience_level === 'professional' ? 'bg-purple-100 text-purple-800' :
                                   registration.experience_level === 'advanced' ? 'bg-orange-100 text-orange-800' :
                                   registration.experience_level === 'intermediate' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-gray-100 text-gray-800'
+                                  'bg-gray-100 text-black'
                                 }`}>
                                   {registration.experience_level}
                                 </span>
@@ -1377,7 +1377,7 @@ export const OrganizerDashboard: React.FC = () => {
                                 )}
                               </div>
                               
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-600">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-black">
                                 <div className="flex items-center space-x-1">
                                   <Trophy className="h-3 w-3 mr-1" />
                                   <span className="truncate">{registration.tournaments?.name || registration.tournament_name}</span>
@@ -1392,7 +1392,7 @@ export const OrganizerDashboard: React.FC = () => {
                                 </div>
                               </div>
                               
-                              <p className="text-xs text-gray-500 mt-2">
+                                                              <p className="text-xs text-black mt-2">
                                 Age: {registration.age} • Registered: {new Date(registration.registration_date).toLocaleDateString()}
                               </p>
                             </div>
@@ -1487,7 +1487,7 @@ export const OrganizerDashboard: React.FC = () => {
                     {/* Pagination */}
                     {totalPages > 1 && (
                       <div className="mt-6 flex items-center justify-between">
-                        <div className="text-sm text-gray-600">
+                                                        <div className="text-sm text-black">
                           Page {currentPage} of {totalPages}
                         </div>
                         <div className="flex items-center space-x-2">
@@ -1511,7 +1511,7 @@ export const OrganizerDashboard: React.FC = () => {
                                   className={`px-3 py-1 text-sm rounded ${
                                     currentPage === pageNum
                                       ? 'bg-blue-600 text-white'
-                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                      : 'bg-gray-100 text-black hover:bg-gray-200'
                                   }`}
                                 >
                                   {pageNum}
@@ -1665,7 +1665,7 @@ export const OrganizerDashboard: React.FC = () => {
                   >
                     <div className="flex items-center space-x-3">
                       <DollarSign className="h-5 w-5 text-green-600" />
-                      <span className="text-gray-900 font-medium">Total Revenue</span>
+                      <span className="text-black font-medium">Total Revenue</span>
                     </div>
                     <span className="font-bold text-green-600 text-lg">रू {totalRevenue.toLocaleString()}</span>
                   </motion.div>
