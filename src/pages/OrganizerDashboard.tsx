@@ -1079,83 +1079,83 @@ export const OrganizerDashboard: React.FC = () => {
           animate="visible"
           className="mb-8"
         >
-          {/* Clean, Professional Navigation */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2">
-            <nav className="flex flex-wrap gap-2">
+          {/* Professional Navigation with Visual Appeal */}
+          <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl border border-slate-200 shadow-lg p-4">
+            <nav className="flex flex-wrap gap-3">
               <Button
                 onClick={() => setSelectedTab('tournaments')}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'tournaments'
-                    ? 'bg-gray-900 text-white shadow-md'
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
+                    : 'bg-white text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
-                <Trophy className="h-4 w-4" />
+                <Trophy className={`h-5 w-5 ${selectedTab === 'tournaments' ? 'text-white' : 'text-blue-600'}`} />
                 <span>Your Tournaments</span>
               </Button>
               <Button
                 onClick={() => setSelectedTab('participants')}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'participants'
-                    ? 'bg-gray-900 text-white shadow-md'
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
+                    : 'bg-white text-slate-700 hover:bg-green-50 hover:text-green-700 hover:border-green-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
-                <Users className="h-4 w-4" />
+                <Users className={`h-5 w-5 ${selectedTab === 'participants' ? 'text-white' : 'text-green-600'}`} />
                 <span>Manage Participants</span>
                 {organizerRegistrations.length > 0 && (
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full ml-2">
+                  <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full ml-2 font-bold shadow-sm">
                     {organizerRegistrations.length}
                   </span>
                 )}
               </Button>
               <Button
                 onClick={() => setSelectedTab('revenue')}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'revenue'
-                    ? 'bg-gray-900 text-white shadow-md'
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
+                    : 'bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
-                <DollarSign className="h-4 w-4" />
+                <DollarSign className={`h-5 w-5 ${selectedTab === 'revenue' ? 'text-white' : 'text-emerald-600'}`} />
                 <span>Revenue Dashboard</span>
               </Button>
               <Button
                 onClick={() => setSelectedTab('schedule')}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'schedule'
-                    ? 'bg-gray-900 text-white shadow-md'
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
+                    : 'bg-white text-slate-700 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
-                <Calendar className="h-4 w-4" />
+                <Calendar className={`h-5 w-5 ${selectedTab === 'schedule' ? 'text-white' : 'text-orange-600'}`} />
                 <span>Schedule Events</span>
               </Button>
               <Button
                 onClick={() => setSelectedTab('manage')}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'manage'
-                    ? 'bg-gray-900 text-white shadow-md'
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
+                    : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
-                <Archive className="h-4 w-4" />
+                <Archive className={`h-5 w-5 ${selectedTab === 'manage' ? 'text-white' : 'text-slate-600'}`} />
                 <span>Manage Events</span>
                 {manageableTournaments.length > 0 && (
-                  <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full ml-2">
+                  <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1 rounded-full ml-2 font-bold shadow-sm">
                     {manageableTournaments.length}
                   </span>
                 )}
               </Button>
               <Button
                 onClick={() => setSelectedTab('chat')}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'chat'
-                    ? 'bg-gray-900 text-white shadow-md'
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
+                    : 'bg-white text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
-                <MessageSquare className="h-4 w-4" />
+                <MessageSquare className={`h-5 w-5 ${selectedTab === 'chat' ? 'text-white' : 'text-indigo-600'}`} />
                 <span>Chat</span>
               </Button>
             </nav>
@@ -1569,41 +1569,41 @@ export const OrganizerDashboard: React.FC = () => {
             className="space-y-6"
           >
             <motion.div variants={itemVariants}>
-              <Card className="p-6 bg-white border border-gray-100 shadow-sm">
+              <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-slate-200 shadow-xl">
                 <motion.h2 
                   variants={itemVariants}
-                  className="text-xl font-semibold text-gray-900 mb-6 flex items-center"
+                  className="text-xl font-bold text-slate-800 mb-6 flex items-center"
                 >
-                  <Zap className="h-5 w-5 mr-2 text-gray-600" />
+                  <Zap className="h-6 w-6 mr-3 text-blue-600" />
                   Quick Actions
                 </motion.h2>
                 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {[
-                    { icon: Plus, label: 'Create Tournament', action: 'create' },
-                    { icon: Users, label: 'Manage Participants', action: 'participants' },
-                    { icon: Calendar, label: 'Schedule Events', action: 'schedule' },
-                    { icon: Settings, label: 'Organization Settings', action: 'settings' },
-                    { icon: BarChart3, label: 'View Analytics', action: 'analytics' }
+                    { icon: Plus, label: 'Create Tournament', action: 'create', color: 'from-blue-500 to-purple-600' },
+                    { icon: Users, label: 'Manage Participants', action: 'participants', color: 'from-green-500 to-emerald-600' },
+                    { icon: Calendar, label: 'Schedule Events', action: 'schedule', color: 'from-orange-500 to-red-600' },
+                    { icon: Settings, label: 'Organization Settings', action: 'settings', color: 'from-slate-500 to-gray-600' },
+                    { icon: BarChart3, label: 'View Analytics', action: 'analytics', color: 'from-indigo-500 to-blue-600' }
                   ].map((action, index) => (
                     <motion.div
                       key={action.action}
                       variants={itemVariants}
-                      whileHover={{ scale: 1.02, x: 5 }}
+                      whileHover={{ scale: 1.03, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       className="group"
                     >
                       <Button 
-                        className="w-full justify-start bg-gray-50 hover:bg-gray-100 text-gray-700 hover:text-gray-900 border border-gray-200 transition-all duration-200 group-hover:shadow-md"
+                        className={`w-full justify-start bg-gradient-to-r ${action.color} hover:shadow-xl text-white border-0 transition-all duration-300 transform group-hover:scale-105 shadow-lg`}
                         onClick={() => {
                           if (action.action === 'create') navigate('/create-tournament');
                           else if (action.action === 'settings') navigate('/organizer-profile');
                           else handleQuickAction(action.action);
                         }}
                       >
-                        <action.icon className="mr-3 h-4 w-4 text-gray-600 group-hover:text-gray-800 transition-colors duration-200" />
-                        {action.label}
-                        <ArrowUpRight className="ml-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500" />
+                        <action.icon className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                        <span className="font-semibold">{action.label}</span>
+                        <ArrowUpRight className="ml-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-all duration-300 text-white" />
                       </Button>
                     </motion.div>
                   ))}
@@ -1613,12 +1613,12 @@ export const OrganizerDashboard: React.FC = () => {
 
             {/* Enhanced Summary Card */}
             <motion.div variants={itemVariants}>
-              <Card className="p-6 bg-white border border-gray-100 shadow-sm">
+              <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-slate-200 shadow-xl">
                 <motion.h3 
                   variants={itemVariants}
-                  className="text-lg font-semibold text-gray-900 mb-4 flex items-center"
+                  className="text-lg font-bold text-slate-800 mb-4 flex items-center"
                 >
-                  <BarChart className="h-5 w-5 mr-2 text-gray-600" />
+                  <BarChart className="h-6 w-6 mr-2 text-blue-600" />
                   Dashboard Summary
                 </motion.h3>
                 <div className="space-y-4">
@@ -1631,33 +1631,37 @@ export const OrganizerDashboard: React.FC = () => {
                     <motion.div
                       key={item.label}
                       variants={itemVariants}
-                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 border border-gray-100"
-                      whileHover={{ scale: 1.02, x: 3 }}
+                      className="flex items-center justify-between p-4 rounded-xl bg-white/80 hover:bg-white shadow-md hover:shadow-lg transition-all duration-300 border border-white/50"
+                      whileHover={{ scale: 1.02, y: -2 }}
                     >
                       <div className="flex items-center space-x-3">
-                        <item.icon className={`h-4 w-4 ${item.color}`} />
-                        <span className="text-gray-700 text-sm font-medium">{item.label}</span>
+                        <div className={`p-2 rounded-lg ${item.color.replace('text-', 'bg-').replace('-600', '-100')}`}>
+                          <item.icon className={`h-5 w-5 ${item.color}`} />
+                        </div>
+                        <span className="text-slate-700 text-sm font-semibold">{item.label}</span>
                       </div>
-                      <span className={`font-semibold ${item.color}`}>{item.value}</span>
+                      <span className={`font-bold text-lg ${item.color}`}>{item.value}</span>
                     </motion.div>
                   ))}
                   {rejectedTournaments > 0 && (
                     <motion.div
                       variants={itemVariants}
-                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 border border-gray-100"
-                      whileHover={{ scale: 1.02, x: 3 }}
+                      className="flex items-center justify-between p-4 rounded-xl bg-white/80 hover:bg-white shadow-md hover:shadow-lg transition-all duration-300 border border-white/50"
+                      whileHover={{ scale: 1.02, y: -2 }}
                     >
                       <div className="flex items-center space-x-3">
-                        <XCircle className="h-4 w-4 text-red-600" />
-                        <span className="text-gray-700 text-sm font-medium">Rejected</span>
+                        <div className="p-2 rounded-lg bg-red-100">
+                          <XCircle className="h-5 w-5 text-red-600" />
+                        </div>
+                        <span className="text-slate-700 text-sm font-semibold">Rejected</span>
                       </div>
-                      <span className="font-semibold text-red-600">{rejectedTournaments}</span>
+                      <span className="font-bold text-lg text-red-600">{rejectedTournaments}</span>
                     </motion.div>
                   )}
                   <motion.div
                     variants={itemVariants}
-                    className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border border-gray-200"
-                    whileHover={{ scale: 1.02, x: 3 }}
+                    className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 shadow-lg"
+                    whileHover={{ scale: 1.02, y: -2 }}
                   >
                     <div className="flex items-center space-x-3">
                       <DollarSign className="h-5 w-5 text-green-600" />
