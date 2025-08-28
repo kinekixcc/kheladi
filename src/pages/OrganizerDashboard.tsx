@@ -1087,7 +1087,7 @@ export const OrganizerDashboard: React.FC = () => {
                 className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'tournaments'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
-                    : 'bg-white text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 border border-slate-200 shadow-md hover:shadow-lg'
+                    : 'bg-white text-black hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
                 <Trophy className={`h-5 w-5 ${selectedTab === 'tournaments' ? 'text-white' : 'text-blue-600'}`} />
@@ -1098,7 +1098,7 @@ export const OrganizerDashboard: React.FC = () => {
                 className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'participants'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
-                    : 'bg-white text-slate-700 hover:bg-green-50 hover:text-green-700 hover:border-green-200 border border-slate-200 shadow-md hover:shadow-lg'
+                    : 'bg-white text-black hover:bg-green-50 hover:text-green-700 hover:border-green-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
                 <Users className={`h-5 w-5 ${selectedTab === 'participants' ? 'text-white' : 'text-green-600'}`} />
@@ -1114,7 +1114,7 @@ export const OrganizerDashboard: React.FC = () => {
                 className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'revenue'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
-                    : 'bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 border border-slate-200 shadow-md hover:shadow-lg'
+                    : 'bg-white text-black hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
                 <DollarSign className={`h-5 w-5 ${selectedTab === 'revenue' ? 'text-white' : 'text-emerald-600'}`} />
@@ -1125,7 +1125,7 @@ export const OrganizerDashboard: React.FC = () => {
                 className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'schedule'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
-                    : 'bg-white text-slate-700 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-slate-200 shadow-md hover:shadow-lg'
+                    : 'bg-white text-black hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
                 <Calendar className={`h-5 w-5 ${selectedTab === 'schedule' ? 'text-white' : 'text-orange-600'}`} />
@@ -1136,7 +1136,7 @@ export const OrganizerDashboard: React.FC = () => {
                 className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'manage'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
-                    : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300 border border-slate-200 shadow-md hover:shadow-lg'
+                    : 'bg-white text-black hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
                 <Archive className={`h-5 w-5 ${selectedTab === 'manage' ? 'text-white' : 'text-slate-600'}`} />
@@ -1152,7 +1152,7 @@ export const OrganizerDashboard: React.FC = () => {
                 className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
                   selectedTab === 'chat'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/25 border-0'
-                    : 'bg-white text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200 shadow-md hover:shadow-lg'
+                    : 'bg-white text-black hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200 shadow-md hover:shadow-lg'
                 }`}
               >
                 <MessageSquare className={`h-5 w-5 ${selectedTab === 'chat' ? 'text-white' : 'text-indigo-600'}`} />
@@ -1572,7 +1572,7 @@ export const OrganizerDashboard: React.FC = () => {
               <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-slate-200 shadow-xl">
                 <motion.h2 
                   variants={itemVariants}
-                  className="text-xl font-bold text-slate-800 mb-6 flex items-center"
+                  className="text-xl font-bold text-black mb-6 flex items-center"
                 >
                   <Zap className="h-6 w-6 mr-3 text-blue-600" />
                   Quick Actions
@@ -1602,7 +1602,7 @@ export const OrganizerDashboard: React.FC = () => {
                         }}
                       >
                         <action.icon className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                        <span className="font-semibold">{action.label}</span>
+                        <span className="font-bold text-white">{action.label}</span>
                         <ArrowUpRight className="ml-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-all duration-300 text-white" />
                       </Button>
                     </motion.div>
@@ -1616,7 +1616,7 @@ export const OrganizerDashboard: React.FC = () => {
               <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-slate-200 shadow-xl">
                 <motion.h3 
                   variants={itemVariants}
-                  className="text-lg font-bold text-slate-800 mb-4 flex items-center"
+                  className="text-lg font-bold text-black mb-4 flex items-center"
                 >
                   <BarChart className="h-6 w-6 mr-2 text-blue-600" />
                   Dashboard Summary
@@ -1638,7 +1638,7 @@ export const OrganizerDashboard: React.FC = () => {
                         <div className={`p-2 rounded-lg ${item.color.replace('text-', 'bg-').replace('-600', '-100')}`}>
                           <item.icon className={`h-5 w-5 ${item.color}`} />
                         </div>
-                        <span className="text-slate-700 text-sm font-semibold">{item.label}</span>
+                        <span className="text-black text-sm font-semibold">{item.label}</span>
                       </div>
                       <span className={`font-bold text-lg ${item.color}`}>{item.value}</span>
                     </motion.div>
@@ -1653,7 +1653,7 @@ export const OrganizerDashboard: React.FC = () => {
                         <div className="p-2 rounded-lg bg-red-100">
                           <XCircle className="h-5 w-5 text-red-600" />
                         </div>
-                        <span className="text-slate-700 text-sm font-semibold">Rejected</span>
+                        <span className="text-black text-sm font-semibold">Rejected</span>
                       </div>
                       <span className="font-bold text-lg text-red-600">{rejectedTournaments}</span>
                     </motion.div>
