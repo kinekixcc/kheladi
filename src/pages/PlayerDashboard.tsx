@@ -931,8 +931,8 @@ export const PlayerDashboard: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading your dashboard...</p>
-          <p className="text-gray-500 text-sm mt-2">Please wait while we fetch your data</p>
+                  <p className="text-black text-lg">Loading your dashboard...</p>
+        <p className="text-black text-sm mt-2">Please wait while we fetch your data</p>
         </div>
       </div>
     );
@@ -945,8 +945,8 @@ export const PlayerDashboard: React.FC = () => {
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-red-600 text-2xl">⚠️</span>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+                  <h2 className="text-xl font-semibold text-black mb-2">Something went wrong</h2>
+        <p className="text-black mb-4">{error}</p>
           <div className="space-x-3">
             <Button onClick={refreshData} variant="primary">
               Try Again
@@ -983,10 +983,10 @@ export const PlayerDashboard: React.FC = () => {
                   <Gamepad2 className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <span className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <span className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Kheleko
                   </span>
-                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
                     Player Dashboard
                   </p>
                 </div>
@@ -1001,8 +1001,8 @@ export const PlayerDashboard: React.FC = () => {
               onClick={toggleSidebar}
               className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:bg-gray-100 ${
                 isDarkMode 
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
-                  : 'text-gray-600 hover:text-gray-900'
+                          ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+        : 'text-black hover:text-black'
               }`}
               title={`${sidebarExpanded ? 'Collapse' : 'Expand'} sidebar (Ctrl+B)`}
               aria-label={`${sidebarExpanded ? 'Collapse' : 'Expand'} sidebar`}
@@ -1026,7 +1026,7 @@ export const PlayerDashboard: React.FC = () => {
                 className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 relative ${
                   selectedTab === tab.id
                     ? `${isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700'} shadow-sm`
-                    : `${isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-800' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+                    : `${isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-800' : 'text-black hover:text-black hover:bg-gray-100'}`
                 }`}
                 aria-current={selectedTab === tab.id ? 'page' : undefined}
                 title={sidebarExpanded ? undefined : tab.label}
@@ -1057,7 +1057,7 @@ export const PlayerDashboard: React.FC = () => {
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   isDarkMode 
                     ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    : 'text-black hover:text-black hover:bg-gray-100'
                 }`}
                 title="Toggle theme"
               >
@@ -1073,7 +1073,7 @@ export const PlayerDashboard: React.FC = () => {
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   isDarkMode 
                     ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    : 'text-black hover:text-black hover:bg-gray-100'
                 }`}
                 title="Profile"
               >
@@ -1109,11 +1109,11 @@ export const PlayerDashboard: React.FC = () => {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Gamepad2 className="h-5 w-5 text-white" />
               </div>
-              <span className="font-bold text-lg text-gray-900">Kheleko</span>
+              <span className="font-bold text-lg text-black">Kheleko</span>
             </div>
             <Button
               onClick={closeMobileSidebar}
-              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="p-2 rounded-lg text-black hover:text-black hover:bg-gray-100"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1133,12 +1133,12 @@ export const PlayerDashboard: React.FC = () => {
                 className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   selectedTab === tab.id
                     ? 'bg-blue-100 text-blue-700 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    : 'text-black hover:text-black hover:bg-gray-100'
                 }`}
                 aria-current={selectedTab === tab.id ? 'page' : undefined}
               >
                 <tab.icon className={`h-5 w-5 flex-shrink-0 ${
-                  selectedTab === tab.id ? 'text-current' : 'text-gray-500 group-hover:text-current'
+                  selectedTab === tab.id ? 'text-current' : 'text-black group-hover:text-current'
                 }`} aria-hidden="true" />
                 <span className="font-medium">{tab.label}</span>
               </Button>
@@ -1150,7 +1150,7 @@ export const PlayerDashboard: React.FC = () => {
             <div className="space-y-2">
               <Button
                 onClick={toggleTheme}
-                className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-black hover:text-black hover:bg-gray-100 transition-colors"
               >
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 <span className="text-sm">Toggle Theme</span>
@@ -1196,13 +1196,13 @@ export const PlayerDashboard: React.FC = () => {
 
               {/* Welcome Section */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-black mb-2">
                   Welcome back, {user?.full_name || 'Player'}! 👋
                 </h2>
-                <p className="text-gray-600">Ready for your next tournament adventure?</p>
+                <p className="text-black">Ready for your next tournament adventure?</p>
                 
                 {/* Debug Info */}
-                <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-black">
                   <div>Sidebar: {sidebarExpanded ? 'Expanded (w-64)' : 'Collapsed (w-20)'}</div>
                   <div>Current Tab: {selectedTab}</div>
                   <div>Click the blue "Collapse/Expand" button to test</div>
@@ -1271,10 +1271,10 @@ export const PlayerDashboard: React.FC = () => {
                           <div className={`w-12 h-12 rounded-lg ${stat.color} grid place-items-center`}>
                             <stat.icon className="h-6 w-6 text-white" />
                           </div>
-                          <span className="text-xs text-gray-500">{stat.trend}</span>
+                          <span className="text-xs text-black">{stat.trend}</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                        <p className="text-sm text-gray-600">{stat.title}</p>
+                                                  <h3 className="text-2xl font-bold text-black mb-1">{stat.value}</h3>
+                          <p className="text-sm text-black">{stat.title}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -1282,7 +1282,7 @@ export const PlayerDashboard: React.FC = () => {
 
                 {/* Quick Actions */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                  <h3 className="text-lg font-semibold text-black mb-4">Quick Actions</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Button 
                       onClick={() => setSelectedTab('tournaments')}
@@ -1292,8 +1292,8 @@ export const PlayerDashboard: React.FC = () => {
                         <Trophy className="h-5 w-5 text-blue-600" />
                       </div>
                       <div className="text-left">
-                        <h4 className="font-medium text-gray-900">Browse Tournaments</h4>
-                        <p className="text-sm text-gray-500">Find your next challenge</p>
+                        <h4 className="font-medium text-black">Browse Tournaments</h4>
+                        <p className="text-sm text-black">Find your next challenge</p>
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-blue-600 transition-colors" />
                     </Button>
@@ -1306,8 +1306,8 @@ export const PlayerDashboard: React.FC = () => {
                         <Users className="h-5 w-5 text-green-600" />
                       </div>
                       <div className="text-left">
-                        <h4 className="font-medium text-gray-900">My Tournaments</h4>
-                        <p className="text-sm text-gray-500">View your registrations</p>
+                        <h4 className="font-medium text-black">My Tournaments</h4>
+                        <p className="text-sm text-black">View your registrations</p>
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-green-600 transition-colors" />
                     </Button>
@@ -1320,8 +1320,8 @@ export const PlayerDashboard: React.FC = () => {
                         <Award className="h-5 w-5 text-purple-600" />
                       </div>
                       <div className="text-left">
-                        <h4 className="font-medium text-gray-900">Achievements</h4>
-                        <p className="text-sm text-gray-500">Track your progress</p>
+                        <h4 className="font-medium text-black">Achievements</h4>
+                        <p className="text-sm text-black">Track your progress</p>
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-purple-600 transition-colors" />
                     </Button>
@@ -1337,8 +1337,8 @@ export const PlayerDashboard: React.FC = () => {
                         <Settings className="h-4 w-4 text-orange-600" />
                       </div>
                       <div className="text-left">
-                        <h4 className="font-medium text-gray-900 text-sm">🧪 Test Tournament Browsing</h4>
-                        <p className="text-xs text-gray-500">Check console for results</p>
+                        <h4 className="font-medium text-black text-sm">🧪 Test Tournament Browsing</h4>
+                        <p className="text-xs text-black">Check console for results</p>
                       </div>
                     </Button>
                     
@@ -1350,8 +1350,8 @@ export const PlayerDashboard: React.FC = () => {
                         <Settings className="h-4 w-4 text-red-600" />
                       </div>
                       <div className="text-left">
-                        <h4 className="font-medium text-gray-900 text-sm">🔍 Test Database Connection</h4>
-                        <p className="text-xs text-gray-500">Deep database diagnostics</p>
+                        <h4 className="font-medium text-black text-sm">🔍 Test Database Connection</h4>
+                        <p className="text-xs text-black">Deep database diagnostics</p>
                       </div>
                     </Button>
                   </div>
@@ -1359,7 +1359,7 @@ export const PlayerDashboard: React.FC = () => {
 
                 {/* Enhanced Notifications */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Notifications</h3>
+                  <h3 className="text-lg font-semibold text-black mb-4">Recent Notifications</h3>
                   <div className="space-y-3">
                     <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
@@ -1429,17 +1429,17 @@ export const PlayerDashboard: React.FC = () => {
 
                 {/* Recent Activity */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                  <h3 className="text-lg font-semibold text-black mb-4">Recent Activity</h3>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50">
                       <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                         <Trophy className="h-4 w-4 text-green-600" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-black">
                           <span className="font-medium">You won</span> Summer Football Championship
                         </div>
-                        <div className="text-xs text-gray-500">2 hours ago</div>
+                        <div className="text-xs text-black">2 hours ago</div>
                       </div>
                     </div>
                     
@@ -1448,10 +1448,10 @@ export const PlayerDashboard: React.FC = () => {
                         <Users className="h-4 w-4 text-blue-600" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-black">
                           <span className="font-medium">You joined</span> Elite Ballers team
                         </div>
-                        <div className="text-xs text-gray-500">1 day ago</div>
+                        <div className="text-xs text-black">1 day ago</div>
                       </div>
                     </div>
                     
@@ -1460,10 +1460,10 @@ export const PlayerDashboard: React.FC = () => {
                         <Award className="h-4 w-4 text-purple-600" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-black">
                           <span className="font-medium">Achievement unlocked:</span> First Victory
                         </div>
-                        <div className="text-xs text-gray-500">2 days ago</div>
+                        <div className="text-xs text-black">2 days ago</div>
                       </div>
                     </div>
                     
@@ -1472,10 +1472,10 @@ export const PlayerDashboard: React.FC = () => {
                         <Calendar className="h-4 w-4 text-yellow-600" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-black">
                           <span className="font-medium">Registered for</span> Basketball Pro League
                         </div>
-                        <div className="text-xs text-gray-500">3 days ago</div>
+                        <div className="text-xs text-black">3 days ago</div>
                       </div>
                     </div>
                   </div>
@@ -1497,7 +1497,7 @@ export const PlayerDashboard: React.FC = () => {
                   <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                         <input
                           type="text"
                           placeholder="Search tournaments..."
@@ -1535,13 +1535,13 @@ export const PlayerDashboard: React.FC = () => {
                       <div className="flex border border-gray-300 rounded-lg">
                         <Button
                           onClick={() => setViewMode('grid')}
-                          className={`px-3 py-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'} border-r border-gray-300 rounded-l-lg hover:bg-blue-50 transition-colors`}
+                          className={`px-3 py-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-black'} border-r border-gray-300 rounded-l-lg hover:bg-blue-50 transition-colors`}
                         >
                           <Grid3X3 className="h-4 w-4" />
                         </Button>
                         <Button
                           onClick={() => setViewMode('list')}
-                          className={`px-3 py-2 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'} rounded-r-lg hover:bg-blue-50 transition-colors`}
+                          className={`px-3 py-2 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-black'} rounded-r-lg hover:bg-blue-50 transition-colors`}
                         >
                           <List className="h-4 w-4" />
                         </Button>
@@ -1553,10 +1553,10 @@ export const PlayerDashboard: React.FC = () => {
                 {/* Tournaments Grid/List */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-black">
                       Available Tournaments ({filteredTournaments.length})
                     </h3>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-black">
                       Showing {filteredTournaments.length} of {availableTournaments.length} tournaments
                     </div>
                   </div>
@@ -1564,8 +1564,8 @@ export const PlayerDashboard: React.FC = () => {
                   {filteredTournaments.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 rounded-lg">
                       <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No tournaments found</h3>
-                      <p className="text-gray-600 mb-4">
+                      <h3 className="text-lg font-medium text-black mb-2">No tournaments found</h3>
+                      <p className="text-black mb-4">
                         {searchQuery || filterSport !== 'all' 
                           ? 'Try adjusting your search or filters'
                           : 'No tournaments are currently available'
@@ -1583,7 +1583,7 @@ export const PlayerDashboard: React.FC = () => {
                         </Button>
                         <Button
                           onClick={() => setSelectedTab('overview')}
-                          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                          className="px-4 py-2 border border-gray-300 text-black rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           Back to Overview
                         </Button>
@@ -1619,9 +1619,9 @@ export const PlayerDashboard: React.FC = () => {
                           
                           {/* Tournament Details */}
                           <div className={`${viewMode === 'list' ? 'flex-1' : ''}`}>
-                            <h3 className="font-semibold text-gray-900 mb-2 text-lg">{tournament.name}</h3>
+                            <h3 className="font-semibold text-black mb-2 text-lg">{tournament.name}</h3>
                             
-                            <div className="space-y-2 text-sm text-gray-600">
+                            <div className="space-y-2 text-sm text-black">
                               <div className="flex items-center">
                                 <Trophy className="h-4 w-4 mr-2 text-yellow-500 flex-shrink-0" />
                                 <span>{tournament.sport_type}</span>
@@ -1690,8 +1690,8 @@ export const PlayerDashboard: React.FC = () => {
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                   {/* Header */}
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">My Tournament Registrations</h3>
-                    <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    <h3 className="text-lg font-semibold text-black">My Tournament Registrations</h3>
+                    <span className="text-sm text-black bg-gray-100 px-3 py-1 rounded-full">
                       {playerRegistrations.length} tournament{playerRegistrations.length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -1700,8 +1700,8 @@ export const PlayerDashboard: React.FC = () => {
                   {playerRegistrations.length === 0 ? (
                     <div className="text-center py-12">
                       <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h4 className="text-lg font-medium text-gray-900 mb-2">No tournaments yet</h4>
-                      <p className="text-gray-600 mb-4">Start by browsing available tournaments</p>
+                      <h4 className="text-lg font-medium text-black mb-2">No tournaments yet</h4>
+                      <p className="text-black mb-4">Start by browsing available tournaments</p>
                       <Button onClick={() => setSelectedTab('tournaments')} className="bg-blue-600 hover:bg-blue-700">
                         Browse Tournaments
                       </Button>
@@ -1755,10 +1755,10 @@ export const PlayerDashboard: React.FC = () => {
                           <div className="p-6">
                             {/* Tournament Header */}
                             <div className="mb-4">
-                              <h4 className="font-semibold text-gray-900 text-lg mb-1">
+                              <h4 className="font-semibold text-black text-lg mb-1">
                                 {registration.tournament_name || 'Tournament Name'}
                               </h4>
-                              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                              <div className="flex items-center space-x-2 text-sm text-black">
                                 <Trophy className="h-4 w-4 text-blue-500" />
                                 <span className="font-medium">{registration.tournament_sport_type || 'Sport Type'}</span>
                                 <span className="text-gray-400">•</span>
@@ -1768,10 +1768,10 @@ export const PlayerDashboard: React.FC = () => {
 
                             {/* Tournament Details */}
                             <div className="space-y-3 mb-4">
-                              <div className="flex items-center text-sm text-gray-600">
+                              <div className="flex items-center text-sm text-black">
                                 <Calendar className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-medium text-gray-700">Start Date</div>
+                                  <div className="font-medium text-black">Start Date</div>
                                   <div className="truncate">
                                     {registration.tournament_start_date ? 
                                       new Date(registration.tournament_start_date).toLocaleDateString() : 
@@ -1780,26 +1780,26 @@ export const PlayerDashboard: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center text-sm text-gray-600">
+                              <div className="flex items-center text-sm text-black">
                                 <MapPin className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-medium text-gray-700">Location</div>
+                                  <div className="font-medium text-black">Location</div>
                                   <div className="truncate">
                                     {registration.tournament_facility_name || 'Location not set'}
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center text-sm text-gray-600">
+                              <div className="flex items-center text-sm text-black">
                                 <DollarSign className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-medium text-gray-700">Entry Fee</div>
+                                  <div className="font-medium text-black">Entry Fee</div>
                                   <div className="truncate">रू {registration.tournament_entry_fee || '0'}</div>
                                 </div>
                               </div>
-                              <div className="flex items-center text-sm text-gray-600">
+                              <div className="flex items-center text-sm text-black">
                                 <Clock className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-medium text-gray-700">Registered</div>
+                                  <div className="font-medium text-black">Registered</div>
                                   <div className="truncate">
                                     {registration.registration_date ? 
                                       new Date(registration.registration_date).toLocaleDateString() : 
@@ -1863,21 +1863,21 @@ Registration Date: ${registration.registration_date ? new Date(registration.regi
                 className="space-y-6"
               >
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Chat & Communication</h3>
+                  <h3 className="text-lg font-semibold text-black mb-4">Chat & Communication</h3>
                   
                   {/* Chat Overview */}
                   <div className="mb-6">
-                    <p className="text-gray-600 mb-4">Stay connected with tournament organizers and other players</p>
+                    <p className="text-black mb-4">Stay connected with tournament organizers and other players</p>
                   </div>
                   
                   {/* Tournament Chats */}
                   <div className="mb-6">
-                    <h4 className="font-medium text-gray-900 mb-3">Your Tournament Chats</h4>
+                    <h4 className="font-medium text-black mb-3">Your Tournament Chats</h4>
                     {playerRegistrations.length === 0 ? (
                       <div className="text-center py-8 bg-gray-50 rounded-lg">
                         <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-600 mb-3">No tournament chats available</p>
-                        <p className="text-sm text-gray-500">Join tournaments to start chatting</p>
+                        <p className="text-black mb-3">No tournament chats available</p>
+                        <p className="text-sm text-black">Join tournaments to start chatting</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -1892,14 +1892,14 @@ Registration Date: ${registration.registration_date ? new Date(registration.regi
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-black">
                                   {registration.tournament_name || 'Tournament'}
                                 </span>
-                                <span className="text-xs text-gray-500 bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                <span className="text-xs text-black bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                                   {registration.status}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-black">
                                 {registration.tournament_sport_type || 'Sport'} • {registration.tournament_facility_name || 'Location'}
                               </p>
                             </div>
@@ -1940,11 +1940,11 @@ Registration Date: ${registration.registration_date ? new Date(registration.regi
                           <MessageSquare className="h-5 w-5 text-green-600" />
                         </div>
                         <div>
-                          <h4 className="font-medium text-gray-900">Browse Tournaments</h4>
-                          <p className="text-sm text-gray-500">Find new tournaments</p>
+                          <h4 className="font-medium text-black">Browse Tournaments</h4>
+                          <p className="text-sm text-black">Find new tournaments</p>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">Discover tournaments and join their chat rooms</p>
+                      <p className="text-sm text-black mb-3">Discover tournaments and join their chat rooms</p>
                       <Button 
                         className="w-full bg-green-600 hover:bg-green-700"
                         onClick={() => setSelectedTab('tournaments')}
