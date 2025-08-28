@@ -900,7 +900,7 @@ export const OrganizerDashboard: React.FC = () => {
           <p className="text-gray-600 mb-6">You haven't created any tournaments yet. Get started by creating your first tournament!</p>
           <Button 
             onClick={() => navigate('/create-tournament')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-medium shadow-md transition-all duration-200"
           >
             Create Tournament
           </Button>
@@ -912,7 +912,7 @@ export const OrganizerDashboard: React.FC = () => {
                 loadingRef.current = true;
                 loadData();
               }}
-              className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
+              className="px-4 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
             >
               Refresh Dashboard
             </Button>
@@ -973,7 +973,7 @@ export const OrganizerDashboard: React.FC = () => {
               >
                 <Button 
                   variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-blue-300 transition-all duration-200"
+                  className="bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
                   onClick={handleManualRefresh}
                   disabled={loading || isRefreshing}
                 >
@@ -986,7 +986,7 @@ export const OrganizerDashboard: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Button 
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="bg-gray-900 hover:bg-gray-800 text-white shadow-md hover:shadow-lg transition-all duration-200"
                   onClick={() => navigate('/create-tournament')}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -1079,14 +1079,15 @@ export const OrganizerDashboard: React.FC = () => {
           animate="visible"
           className="mb-8"
         >
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
+          {/* Clean, Professional Navigation */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2">
+            <nav className="flex flex-wrap gap-2">
               <Button
                 onClick={() => setSelectedTab('tournaments')}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                   selectedTab === 'tournaments'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
                 }`}
               >
                 <Trophy className="h-4 w-4" />
@@ -1094,26 +1095,26 @@ export const OrganizerDashboard: React.FC = () => {
               </Button>
               <Button
                 onClick={() => setSelectedTab('participants')}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                   selectedTab === 'participants'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
                 }`}
               >
                 <Users className="h-4 w-4" />
                 <span>Manage Participants</span>
                 {organizerRegistrations.length > 0 && (
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full ml-2">
                     {organizerRegistrations.length}
                   </span>
                 )}
               </Button>
               <Button
                 onClick={() => setSelectedTab('revenue')}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                   selectedTab === 'revenue'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
                 }`}
               >
                 <DollarSign className="h-4 w-4" />
@@ -1121,10 +1122,10 @@ export const OrganizerDashboard: React.FC = () => {
               </Button>
               <Button
                 onClick={() => setSelectedTab('schedule')}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                   selectedTab === 'schedule'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
                 }`}
               >
                 <Calendar className="h-4 w-4" />
@@ -1132,26 +1133,26 @@ export const OrganizerDashboard: React.FC = () => {
               </Button>
               <Button
                 onClick={() => setSelectedTab('manage')}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                   selectedTab === 'manage'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
                 }`}
               >
                 <Archive className="h-4 w-4" />
                 <span>Manage Events</span>
                 {manageableTournaments.length > 0 && (
-                  <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+                  <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full ml-2">
                     {manageableTournaments.length}
                   </span>
                 )}
               </Button>
               <Button
                 onClick={() => setSelectedTab('chat')}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                   selectedTab === 'chat'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
                 }`}
               >
                 <MessageSquare className="h-4 w-4" />
@@ -1568,22 +1569,22 @@ export const OrganizerDashboard: React.FC = () => {
             className="space-y-6"
           >
             <motion.div variants={itemVariants}>
-              <Card className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200/50">
+              <Card className="p-6 bg-white border border-gray-100 shadow-sm">
                 <motion.h2 
                   variants={itemVariants}
                   className="text-xl font-semibold text-gray-900 mb-6 flex items-center"
                 >
-                  <Zap className="h-5 w-5 mr-2 text-blue-600" />
+                  <Zap className="h-5 w-5 mr-2 text-gray-600" />
                   Quick Actions
                 </motion.h2>
                 
                 <div className="space-y-3">
                   {[
-                    { icon: Plus, label: 'Create Tournament', action: 'create', color: 'from-blue-500 to-purple-600' },
-                    { icon: Users, label: 'Manage Participants', action: 'participants', color: 'from-green-500 to-emerald-600' },
-                    { icon: Calendar, label: 'Schedule Events', action: 'schedule', color: 'from-orange-500 to-red-600' },
-                    { icon: Settings, label: 'Organization Settings', action: 'settings', color: 'from-gray-500 to-slate-600' },
-                    { icon: BarChart3, label: 'View Analytics', action: 'analytics', color: 'from-indigo-500 to-blue-600' }
+                    { icon: Plus, label: 'Create Tournament', action: 'create' },
+                    { icon: Users, label: 'Manage Participants', action: 'participants' },
+                    { icon: Calendar, label: 'Schedule Events', action: 'schedule' },
+                    { icon: Settings, label: 'Organization Settings', action: 'settings' },
+                    { icon: BarChart3, label: 'View Analytics', action: 'analytics' }
                   ].map((action, index) => (
                     <motion.div
                       key={action.action}
@@ -1593,16 +1594,16 @@ export const OrganizerDashboard: React.FC = () => {
                       className="group"
                     >
                       <Button 
-                        className={`w-full justify-start bg-gradient-to-r ${action.color} hover:shadow-lg transition-all duration-200 text-white border-0`}
+                        className="w-full justify-start bg-gray-50 hover:bg-gray-100 text-gray-700 hover:text-gray-900 border border-gray-200 transition-all duration-200 group-hover:shadow-md"
                         onClick={() => {
                           if (action.action === 'create') navigate('/create-tournament');
                           else if (action.action === 'settings') navigate('/organizer-profile');
                           else handleQuickAction(action.action);
                         }}
                       >
-                        <action.icon className="mr-3 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                        <action.icon className="mr-3 h-4 w-4 text-gray-600 group-hover:text-gray-800 transition-colors duration-200" />
                         {action.label}
-                        <ArrowUpRight className="ml-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                        <ArrowUpRight className="ml-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500" />
                       </Button>
                     </motion.div>
                   ))}
@@ -1612,7 +1613,7 @@ export const OrganizerDashboard: React.FC = () => {
 
             {/* Enhanced Summary Card */}
             <motion.div variants={itemVariants}>
-              <Card className="p-6 bg-gradient-to-br from-gray-50 to-slate-50 border-2 border-gray-200/50">
+              <Card className="p-6 bg-white border border-gray-100 shadow-sm">
                 <motion.h3 
                   variants={itemVariants}
                   className="text-lg font-semibold text-gray-900 mb-4 flex items-center"
@@ -1630,12 +1631,12 @@ export const OrganizerDashboard: React.FC = () => {
                     <motion.div
                       key={item.label}
                       variants={itemVariants}
-                      className="flex items-center justify-between p-3 rounded-lg bg-white/50 hover:bg-white/80 transition-all duration-200"
+                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 border border-gray-100"
                       whileHover={{ scale: 1.02, x: 3 }}
                     >
                       <div className="flex items-center space-x-3">
                         <item.icon className={`h-4 w-4 ${item.color}`} />
-                        <span className="text-gray-600 text-sm">{item.label}</span>
+                        <span className="text-gray-700 text-sm font-medium">{item.label}</span>
                       </div>
                       <span className={`font-semibold ${item.color}`}>{item.value}</span>
                     </motion.div>
@@ -1643,19 +1644,19 @@ export const OrganizerDashboard: React.FC = () => {
                   {rejectedTournaments > 0 && (
                     <motion.div
                       variants={itemVariants}
-                      className="flex items-center justify-between p-3 rounded-lg bg-white/50 hover:bg-white/80 transition-all duration-200"
+                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 border border-gray-100"
                       whileHover={{ scale: 1.02, x: 3 }}
                     >
                       <div className="flex items-center space-x-3">
                         <XCircle className="h-4 w-4 text-red-600" />
-                        <span className="text-gray-600 text-sm">Rejected</span>
+                        <span className="text-gray-700 text-sm font-medium">Rejected</span>
                       </div>
                       <span className="font-semibold text-red-600">{rejectedTournaments}</span>
                     </motion.div>
                   )}
                   <motion.div
                     variants={itemVariants}
-                    className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
+                    className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border border-gray-200"
                     whileHover={{ scale: 1.02, x: 3 }}
                   >
                     <div className="flex items-center space-x-3">
