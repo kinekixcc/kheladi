@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { 
   Edit, 
@@ -39,6 +40,7 @@ type ProfileForm = z.infer<typeof profileSchema>;
 
 export const PlayerProfile: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -581,7 +583,7 @@ export const PlayerProfile: React.FC = () => {
               <Button 
                 variant="outline" 
                 className="w-full justify-start"
-                onClick={() => window.location.href = '/tournaments'}
+                onClick={() => navigate('/tournaments')}
               >
                 <Trophy className="h-4 w-4 mr-2" />
                 Find Tournaments

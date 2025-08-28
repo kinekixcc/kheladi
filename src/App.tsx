@@ -131,6 +131,15 @@ function App() {
                   <Footer />
                 </>
               } />
+              <Route path="/tournaments" element={
+                <>
+                  <Header />
+                  <main className="flex-1">
+                    <Facilities />
+                  </main>
+                  <Footer />
+                </>
+              } />
               <Route path="/venues" element={
                 <>
                   <Header />

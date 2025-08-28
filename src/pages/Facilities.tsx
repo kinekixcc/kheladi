@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Search, Filter, MapPin, Star, Clock, Phone, Mail, DollarSign, Trophy } from 'lucide-react';
+import { Search, Filter, Trophy } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -10,7 +9,6 @@ import { TournamentCard } from '../components/tournament/TournamentCard';
 import { NEPAL_PROVINCES, SPORTS_TYPES } from '../types';
 
 export const Facilities: React.FC = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedSport, setSelectedSport] = useState('');
@@ -207,15 +205,27 @@ export const Facilities: React.FC = () => {
 
         {/* Tournaments Grid */}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
             {filteredTournaments.map((tournament: any, index: number) => (
-              <TournamentCard
+              <motion.div
                 key={tournament.id}
-                tournament={tournament}
-                index={index}
-              />
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="tournament-card-wrapper"
+              >
+                <TournamentCard
+                  tournament={tournament}
+                  index={index}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* Empty State */}
