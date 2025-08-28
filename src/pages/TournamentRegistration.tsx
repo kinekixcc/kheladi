@@ -474,3 +474,4 @@ export const TournamentRegistration: React.FC = () => {
     </div>
   );
 };
+

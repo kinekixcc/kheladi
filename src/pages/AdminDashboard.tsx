@@ -271,13 +271,13 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 {/* Mobile Menu Button */}
-                <button
+                <Button
                   onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                   className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   title="Toggle menu"
                 >
                   <Menu className="h-6 w-6 text-gray-600" />
-                </button>
+                </Button>
                 
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -319,12 +319,12 @@ export const AdminDashboard: React.FC = () => {
                       New tournaments have been submitted and require your review. Click on "Tournaments" in the sidebar to review and approve them.
                     </p>
                   </div>
-                  <button
+                  <Button
                     onClick={() => setSelectedTab('tournaments')}
                     className="bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-700 transition-colors"
                   >
                     Review Now
-                  </button>
+                  </Button>
                 </div>
               </div>
             </motion.div>
@@ -513,3 +513,14 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
+
+

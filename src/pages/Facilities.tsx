@@ -250,3 +250,4 @@ export const Facilities: React.FC = () => {
     </div>
   );
 };
+

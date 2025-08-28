@@ -401,3 +401,5 @@ export const PlayerRegistrationPayment: React.FC = () => {
     </div>
   );
 };
+
+

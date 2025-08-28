@@ -94,24 +94,48 @@ export const TeamCreationWizard: React.FC<TeamCreationWizardProps> = ({
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // TODO: Integrate with backend API
+      const { teamService } = await import('../../lib/database');
+      const { useAuth } = await import('../../context/AuthContext');
+      
       const teamData = {
         name: teamName,
         description: teamDescription,
-        tournamentId,
-        members: members.map(member => ({
-          email: member.email,
-          name: member.name,
-          role: member.role
-        }))
+        tournament_id: tournamentId,
+        sport_type: 'Mixed', // Default sport type
+        max_members: maxTeamSize || 10,
+        captain_id: '', // Will be set by the service
       };
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Create team using the real team service
+      const createdTeam = await teamService.createTeam(teamData, ''); // User ID will be handled by service
       
-      onTeamCreated(teamData);
+      if (createdTeam) {
+        // Send invitations to members
+        for (const member of members) {
+          if (member.email) {
+            try {
+              await teamService.sendTeamInvitation(
+                createdTeam.id,
+                '', // Inviter ID will be handled by service
+                member.email,
+                `You've been invited to join ${teamName} for ${tournamentName}`
+              );
+            } catch (inviteError) {
+              console.warn(`Failed to send invitation to ${member.email}:`, inviteError);
+            }
+          }
+        }
+        
+        onTeamCreated(createdTeam);
+      }
     } catch (error) {
       console.error('Failed to create team:', error);
+      // Show error to user
+      if (error instanceof Error) {
+        alert(`Failed to create team: ${error.message}`);
+      } else {
+        alert('Failed to create team. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

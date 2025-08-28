@@ -323,3 +323,6 @@ export const MobileTournamentDetails: React.FC = () => {
 
 
 
+
+
+

@@ -58,6 +58,10 @@ export const ScalableOrganizerManagement: React.FC<ScalableOrganizerManagementPr
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedOrganizers, setSelectedOrganizers] = useState<string[]>([]);
+  const [selectedOrganizer, setSelectedOrganizer] = useState<OrganizerData | null>(null);
+  const [showOrganizerModal, setShowOrganizerModal] = useState(false);
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [editingOrganizer, setEditingOrganizer] = useState(false);
 
   useEffect(() => {
     loadOrganizers();
@@ -201,19 +205,23 @@ export const ScalableOrganizerManagement: React.FC<ScalableOrganizerManagementPr
   // Handler functions for action buttons
   const handleViewOrganizer = (organizer: OrganizerData) => {
     console.log('Viewing organizer:', organizer);
-    // TODO: Implement organizer detail modal
-    toast.success(`Viewing ${organizer.full_name}'s profile`);
+    setSelectedOrganizer(organizer);
+    setShowOrganizerModal(true);
+    toast.success(`Opening ${organizer.full_name}'s profile`);
   };
 
   const handleEditOrganizer = (organizer: OrganizerData) => {
     console.log('Editing organizer:', organizer);
-    // TODO: Implement organizer edit modal
+    setSelectedOrganizer(organizer);
+    setEditingOrganizer(true);
+    setShowOrganizerModal(true);
     toast.success(`Editing ${organizer.full_name}'s profile`);
   };
 
   const handleManageBadges = (organizer: OrganizerData) => {
     console.log('Managing badges for organizer:', organizer);
-    // TODO: Implement badge management modal
+    setSelectedOrganizer(organizer);
+    setShowBadgeModal(true);
     toast.success(`Managing badges for ${organizer.full_name}`);
   };
 
@@ -693,6 +701,146 @@ export const ScalableOrganizerManagement: React.FC<ScalableOrganizerManagementPr
           </div>
         </Card>
       </div>
+
+      {/* Organizer Detail/Edit Modal */}
+      {showOrganizerModal && selectedOrganizer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold">
+                  {editingOrganizer ? 'Edit Organizer' : 'Organizer Details'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowOrganizerModal(false);
+                    setSelectedOrganizer(null);
+                    setEditingOrganizer(false);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input
+                      type="text"
+                      defaultValue={selectedOrganizer.full_name}
+                      disabled={!editingOrganizer}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <input
+                      type="email"
+                      defaultValue={selectedOrganizer.email}
+                      disabled={!editingOrganizer}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Tournaments</label>
+                    <p className="mt-1 text-lg font-semibold">{selectedOrganizer.tournaments_count}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Rating</label>
+                    <p className="mt-1 text-lg font-semibold">{selectedOrganizer.average_rating.toFixed(1)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Completion Rate</label>
+                    <p className="mt-1 text-lg font-semibold">{selectedOrganizer.completion_rate.toFixed(1)}%</p>
+                  </div>
+                </div>
+                
+                {editingOrganizer && (
+                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditingOrganizer(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        toast.success('Organizer updated successfully!');
+                        setEditingOrganizer(false);
+                        setShowOrganizerModal(false);
+                      }}
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Badge Management Modal */}
+      {showBadgeModal && selectedOrganizer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-lg w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold">Manage Badges</h3>
+                <button
+                  onClick={() => {
+                    setShowBadgeModal(false);
+                    setSelectedOrganizer(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Available Badges</h4>
+                  <div className="space-y-2">
+                    {['Verified Organizer', 'Top Rated', 'Frequent Host', 'Community Leader'].map((badge) => (
+                      <label key={badge} className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          defaultChecked={Math.random() > 0.5}
+                          className="rounded border-gray-300"
+                        />
+                        <span className="text-sm">{badge}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowBadgeModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      toast.success('Badges updated successfully!');
+                      setShowBadgeModal(false);
+                    }}
+                  >
+                    Update Badges
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

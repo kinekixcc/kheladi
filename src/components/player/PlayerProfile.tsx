@@ -9,7 +9,8 @@ import {
   Award,
   Settings,
   Eye,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,6 +49,7 @@ export const PlayerProfile: React.FC = () => {
     show_achievements: true,
     show_contact: false
   });
+  const [showPerformanceModal, setShowPerformanceModal] = useState(false);
 
   const {
     register,
@@ -576,15 +578,27 @@ export const PlayerProfile: React.FC = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => window.location.href = '/tournaments'}
+              >
                 <Trophy className="h-4 w-4 mr-2" />
                 Find Tournaments
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => window.location.href = '/player-dashboard?tab=teams'}
+              >
                 <Users className="h-4 w-4 mr-2" />
-                Join Team
+                Manage Teams
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => setShowPerformanceModal(true)}
+              >
                 <Star className="h-4 w-4 mr-2" />
                 Rate Performance
               </Button>
@@ -592,6 +606,71 @@ export const PlayerProfile: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Performance Rating Modal */}
+      {showPerformanceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold">Rate Your Performance</h3>
+                <button
+                  onClick={() => setShowPerformanceModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    How would you rate your recent performance?
+                  </label>
+                  <div className="flex space-x-2">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        key={rating}
+                        className="p-2 text-2xl hover:text-yellow-500 transition-colors"
+                      >
+                        <Star className="h-8 w-8" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Comments (Optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    placeholder="Share your thoughts on your performance..."
+                  />
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPerformanceModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      toast.success('Performance rating submitted!');
+                      setShowPerformanceModal(false);
+                    }}
+                  >
+                    Submit Rating
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

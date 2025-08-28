@@ -338,3 +338,4 @@ export const TournamentMap: React.FC = () => {
     </div>
   );
 };
+

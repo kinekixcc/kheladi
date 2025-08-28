@@ -61,8 +61,19 @@ export const EventSchedulingSystem: React.FC<EventSchedulingSystemProps> = ({
     loadEvents();
   }, [organizerId]);
 
-  const loadEvents = () => {
+  const loadEvents = async () => {
     try {
+      // Try to load from Supabase first, fallback to localStorage
+      const { isSupabaseConfigured } = await import('../../lib/supabase');
+      
+      if (isSupabaseConfigured) {
+        // TODO: Implement Supabase event loading
+        // const events = await eventService.getOrganizerEvents(organizerId);
+        // setEvents(events);
+        console.log('Supabase integration pending for events');
+      }
+      
+      // Fallback to localStorage
       const storedEvents = localStorage.getItem(`organizer_events_${organizerId}`);
       if (storedEvents) {
         setEvents(JSON.parse(storedEvents));

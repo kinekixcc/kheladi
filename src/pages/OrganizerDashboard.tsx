@@ -820,7 +820,7 @@ export const OrganizerDashboard: React.FC = () => {
           <p className="text-gray-600">Loading organizer dashboard...</p>
           <p className="text-sm text-gray-500 mt-2">Please wait while we load your tournaments...</p>
           <div className="mt-4">
-            <button 
+            <Button 
               onClick={() => {
                 setLoading(false);
                 loadingRef.current = false;
@@ -837,7 +837,7 @@ export const OrganizerDashboard: React.FC = () => {
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Try Again
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -898,14 +898,14 @@ export const OrganizerDashboard: React.FC = () => {
           <div className="text-6xl mb-4">🏆</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to Your Organizer Dashboard</h1>
           <p className="text-gray-600 mb-6">You haven't created any tournaments yet. Get started by creating your first tournament!</p>
-          <button 
+          <Button 
             onClick={() => navigate('/create-tournament')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
           >
             Create Tournament
-          </button>
+          </Button>
           <div className="mt-4">
-            <button 
+            <Button 
               onClick={() => {
                 setHasAttemptedLoad(false);
                 setLoading(true);
@@ -915,7 +915,7 @@ export const OrganizerDashboard: React.FC = () => {
               className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
             >
               Refresh Dashboard
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -1081,7 +1081,7 @@ export const OrganizerDashboard: React.FC = () => {
         >
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
-              <button
+              <Button
                 onClick={() => setSelectedTab('tournaments')}
                 className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                   selectedTab === 'tournaments'
@@ -1091,8 +1091,8 @@ export const OrganizerDashboard: React.FC = () => {
               >
                 <Trophy className="h-4 w-4" />
                 <span>Your Tournaments</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setSelectedTab('participants')}
                 className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                   selectedTab === 'participants'
@@ -1107,8 +1107,8 @@ export const OrganizerDashboard: React.FC = () => {
                     {organizerRegistrations.length}
                   </span>
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setSelectedTab('revenue')}
                 className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                   selectedTab === 'revenue'
@@ -1118,8 +1118,8 @@ export const OrganizerDashboard: React.FC = () => {
               >
                 <DollarSign className="h-4 w-4" />
                 <span>Revenue Dashboard</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setSelectedTab('schedule')}
                 className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                   selectedTab === 'schedule'
@@ -1129,8 +1129,8 @@ export const OrganizerDashboard: React.FC = () => {
               >
                 <Calendar className="h-4 w-4" />
                 <span>Schedule Events</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setSelectedTab('manage')}
                 className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                   selectedTab === 'manage'
@@ -1145,8 +1145,8 @@ export const OrganizerDashboard: React.FC = () => {
                     {manageableTournaments.length}
                   </span>
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setSelectedTab('chat')}
                 className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                   selectedTab === 'chat'
@@ -1156,7 +1156,7 @@ export const OrganizerDashboard: React.FC = () => {
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>Chat</span>
-              </button>
+              </Button>
             </nav>
           </div>
         </motion.div>
@@ -1504,7 +1504,7 @@ export const OrganizerDashboard: React.FC = () => {
                             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                               const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
                               return (
-                                <button
+                                <Button
                                   key={pageNum}
                                   onClick={() => setCurrentPage(pageNum)}
                                   className={`px-3 py-1 text-sm rounded ${
@@ -1514,7 +1514,7 @@ export const OrganizerDashboard: React.FC = () => {
                                   }`}
                                 >
                                   {pageNum}
-                                </button>
+                                </Button>
                               );
                             })}
                           </div>
@@ -1729,3 +1729,13 @@ export const OrganizerDashboard: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
+

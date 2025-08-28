@@ -139,19 +139,31 @@ export const MobileOrganizerDashboard: React.FC<MobileOrganizerDashboardProps> =
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Quick Actions</h3>
                 <div className="space-y-4">
-                  <button className="w-full text-left p-3 rounded-lg hover:bg-gray-100">
+                  <button 
+                    className="w-full text-left p-3 rounded-lg hover:bg-gray-100"
+                    onClick={() => window.location.href = '/create-tournament'}
+                  >
                     <Plus className="h-5 w-5 inline mr-3" />
                     Create Tournament
                   </button>
-                  <button className="w-full text-left p-3 rounded-lg hover:bg-gray-100">
+                  <button 
+                    className="w-full text-left p-3 rounded-lg hover:bg-gray-100"
+                    onClick={() => onTabChange('participants')}
+                  >
                     <Users className="h-5 w-5 inline mr-3" />
                     Manage Participants
                   </button>
-                  <button className="w-full text-left p-3 rounded-lg hover:bg-gray-100">
+                  <button 
+                    className="w-full text-left p-3 rounded-lg hover:bg-gray-100"
+                    onClick={() => onTabChange('schedule')}
+                  >
                     <Calendar className="h-5 w-5 inline mr-3" />
                     Schedule Events
                   </button>
-                  <button className="w-full text-left p-3 rounded-lg hover:bg-gray-100">
+                  <button 
+                    className="w-full text-left p-3 rounded-lg hover:bg-gray-100"
+                    onClick={() => onTabChange('revenue')}
+                  >
                     <DollarSign className="h-5 w-5 inline mr-3" />
                     View Analytics
                   </button>

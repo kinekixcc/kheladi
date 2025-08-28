@@ -997,7 +997,7 @@ export const PlayerDashboard: React.FC = () => {
               </div>
             )}
             
-            <button
+            <Button
               onClick={toggleSidebar}
               className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:bg-gray-100 ${
                 isDarkMode 
@@ -1014,13 +1014,13 @@ export const PlayerDashboard: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                 )}
               </svg>
-            </button>
+            </Button>
           </div>
 
           {/* Navigation Menu */}
           <nav className="p-4 space-y-2" role="navigation" aria-label="Main navigation">
             {tabConfig.map((tab) => (
-              <button
+              <Button
                 key={tab.id}
                 onClick={() => setSelectedTab(tab.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 relative ${
@@ -1042,7 +1042,7 @@ export const PlayerDashboard: React.FC = () => {
                 {sidebarExpanded && (
                   <span className="font-medium">{tab.label}</span>
                 )}
-              </button>
+              </Button>
             ))}
           </nav>
 
@@ -1052,7 +1052,7 @@ export const PlayerDashboard: React.FC = () => {
           }`}>
             <div className="space-y-2">
               {/* Theme Toggle */}
-              <button
+              <Button
                 onClick={toggleTheme}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   isDarkMode 
@@ -1065,10 +1065,10 @@ export const PlayerDashboard: React.FC = () => {
                 {sidebarExpanded && (
                   <span className="text-sm">Theme</span>
                 )}
-              </button>
+              </Button>
 
               {/* User Profile */}
-              <button
+              <Button
                 onClick={() => setSelectedTab('profile')}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   isDarkMode 
@@ -1081,7 +1081,7 @@ export const PlayerDashboard: React.FC = () => {
                 {sidebarExpanded && (
                   <span className="text-sm">{user?.full_name || 'Profile'}</span>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1111,20 +1111,20 @@ export const PlayerDashboard: React.FC = () => {
               </div>
               <span className="font-bold text-lg text-gray-900">Kheleko</span>
             </div>
-            <button
+            <Button
               onClick={closeMobileSidebar}
               className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           </div>
 
           {/* Mobile Navigation Menu */}
           <nav className="p-4 space-y-2" role="navigation" aria-label="Mobile navigation">
             {tabConfig.map((tab) => (
-              <button
+              <Button
                 key={tab.id}
                 onClick={() => {
                   setSelectedTab(tab.id);
@@ -1141,20 +1141,20 @@ export const PlayerDashboard: React.FC = () => {
                   selectedTab === tab.id ? 'text-current' : 'text-gray-500 group-hover:text-current'
                 }`} aria-hidden="true" />
                 <span className="font-medium">{tab.label}</span>
-              </button>
+              </Button>
             ))}
           </nav>
 
           {/* Mobile Sidebar Footer */}
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
             <div className="space-y-2">
-              <button
+              <Button
                 onClick={toggleTheme}
                 className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               >
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 <span className="text-sm">Toggle Theme</span>
-              </button>
+              </Button>
             </div>
           </div>
         </motion.div>
@@ -1167,17 +1167,17 @@ export const PlayerDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-4">
               {/* Mobile Menu Button */}
-              <button
+              <Button
                 onClick={openMobileSidebar}
                 className="lg:hidden p-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
               >
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
-              </button>
+              </Button>
 
               {/* Sidebar Toggle Button (Desktop) */}
-              <button
+              <Button
                 onClick={toggleSidebar}
                 className="hidden lg:flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                 title={`${sidebarExpanded ? 'Collapse' : 'Expand'} sidebar`}
@@ -1192,7 +1192,7 @@ export const PlayerDashboard: React.FC = () => {
                 <span className="text-sm font-medium">
                   {sidebarExpanded ? 'Collapse' : 'Expand'}
                 </span>
-              </button>
+              </Button>
 
               {/* Welcome Section */}
               <div>
@@ -1284,7 +1284,7 @@ export const PlayerDashboard: React.FC = () => {
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button 
+                    <Button 
                       onClick={() => setSelectedTab('tournaments')}
                       className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group cursor-pointer"
                     >
@@ -1296,9 +1296,9 @@ export const PlayerDashboard: React.FC = () => {
                         <p className="text-sm text-gray-500">Find your next challenge</p>
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-blue-600 transition-colors" />
-                    </button>
+                    </Button>
 
-                    <button 
+                    <Button 
                       onClick={() => setSelectedTab('my-tournaments')}
                       className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all group cursor-pointer"
                     >
@@ -1310,9 +1310,9 @@ export const PlayerDashboard: React.FC = () => {
                         <p className="text-sm text-gray-500">View your registrations</p>
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-green-600 transition-colors" />
-                    </button>
+                    </Button>
 
-                    <button 
+                    <Button 
                       onClick={() => setSelectedTab('achievements')}
                       className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all group cursor-pointer"
                     >
@@ -1324,12 +1324,12 @@ export const PlayerDashboard: React.FC = () => {
                         <p className="text-sm text-gray-500">Track your progress</p>
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-purple-600 transition-colors" />
-                    </button>
+                    </Button>
                   </div>
                   
                   {/* Test Button */}
                   <div className="mt-4 pt-4 border-t border-gray-200">
-                    <button 
+                    <Button 
                       onClick={testTournamentBrowsing}
                       className="flex items-center p-3 rounded-lg border border-orange-300 hover:border-orange-400 hover:bg-orange-50 transition-all group cursor-pointer mx-auto mb-3"
                     >
@@ -1340,9 +1340,9 @@ export const PlayerDashboard: React.FC = () => {
                         <h4 className="font-medium text-gray-900 text-sm">🧪 Test Tournament Browsing</h4>
                         <p className="text-xs text-gray-500">Check console for results</p>
                       </div>
-                    </button>
+                    </Button>
                     
-                    <button 
+                    <Button 
                       onClick={testDatabaseConnection}
                       className="flex items-center p-3 rounded-lg border border-red-300 hover:border-red-400 hover:bg-red-50 transition-all group cursor-pointer mx-auto"
                     >
@@ -1353,7 +1353,7 @@ export const PlayerDashboard: React.FC = () => {
                         <h4 className="font-medium text-gray-900 text-sm">🔍 Test Database Connection</h4>
                         <p className="text-xs text-gray-500">Deep database diagnostics</p>
                       </div>
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -1367,12 +1367,12 @@ export const PlayerDashboard: React.FC = () => {
                         <div className="font-medium text-blue-900">Tournament Reminder</div>
                         <div className="text-sm text-blue-700">Summer Football Championship starts in 2 hours</div>
                       </div>
-                      <button 
+                      <Button 
                         onClick={() => setSelectedTab('my-tournaments')}
                         className="text-blue-600 text-sm hover:text-blue-800"
                       >
                         View
-                      </button>
+                      </Button>
                     </div>
                     
                     <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
@@ -1381,12 +1381,12 @@ export const PlayerDashboard: React.FC = () => {
                         <div className="font-medium text-green-900">Achievement Unlocked</div>
                         <div className="text-sm text-green-700">You've earned "First Victory" achievement!</div>
                       </div>
-                      <button 
+                      <Button 
                         onClick={() => setSelectedTab('achievements')}
                         className="text-green-600 text-sm hover:text-green-800"
                       >
                         View
-                      </button>
+                      </Button>
                     </div>
                     
                     <div className="flex items-center p-3 bg-purple-50 rounded-lg border border-purple-200">
@@ -1396,18 +1396,18 @@ export const PlayerDashboard: React.FC = () => {
                         <div className="text-sm text-purple-700">Phoenix Rising invited you to join their team</div>
                       </div>
                       <div className="flex space-x-2">
-                        <button 
+                        <Button 
                           onClick={() => handleTeamInvitation('1', 'accept')}
                           className="text-green-600 text-sm hover:text-green-800"
                         >
                           Accept
-                        </button>
-                        <button 
+                        </Button>
+                        <Button 
                           onClick={() => handleTeamInvitation('1', 'decline')}
                           className="text-red-600 text-sm hover:text-red-800"
                         >
                           Decline
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     
@@ -1417,12 +1417,12 @@ export const PlayerDashboard: React.FC = () => {
                         <div className="font-medium text-yellow-900">Match Update</div>
                         <div className="text-sm text-yellow-700">Your match vs Team Alpha has been rescheduled</div>
                       </div>
-                      <button 
+                      <Button 
                         onClick={() => setSelectedTab('performance')}
                         className="text-yellow-600 text-sm hover:text-yellow-800"
                       >
                         Details
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1533,18 +1533,18 @@ export const PlayerDashboard: React.FC = () => {
                       </select>
                       
                       <div className="flex border border-gray-300 rounded-lg">
-                        <button
+                        <Button
                           onClick={() => setViewMode('grid')}
                           className={`px-3 py-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'} border-r border-gray-300 rounded-l-lg hover:bg-blue-50 transition-colors`}
                         >
                           <Grid3X3 className="h-4 w-4" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => setViewMode('list')}
                           className={`px-3 py-2 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'} rounded-r-lg hover:bg-blue-50 transition-colors`}
                         >
                           <List className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1572,7 +1572,7 @@ export const PlayerDashboard: React.FC = () => {
                         }
                       </p>
                       <div className="flex gap-3 justify-center">
-                        <button
+                        <Button
                           onClick={() => {
                             setSearchQuery('');
                             setFilterSport('all');
@@ -1580,13 +1580,13 @@ export const PlayerDashboard: React.FC = () => {
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                         >
                           Clear Filters
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => setSelectedTab('overview')}
                           className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           Back to Overview
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ) : (
@@ -2266,14 +2266,14 @@ Registration Date: ${registration.registration_date ? new Date(registration.regi
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Create New Team</h3>
-              <button 
+              <Button 
                 onClick={() => setShowTeamModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </button>
+              </Button>
             </div>
             
             <div className="space-y-4">
@@ -2320,13 +2320,13 @@ Registration Date: ${registration.registration_date ? new Date(registration.regi
             </div>
             
             <div className="flex space-x-3 mt-6">
-              <button 
+              <Button 
                 onClick={() => setShowTeamModal(false)}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => {
                   // Handle team creation
                   setShowTeamModal(false);
@@ -2335,7 +2335,7 @@ Registration Date: ${registration.registration_date ? new Date(registration.regi
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Create Team
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -2345,3 +2345,14 @@ Registration Date: ${registration.registration_date ? new Date(registration.regi
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
+
+

@@ -102,3 +102,5 @@ COMMENT ON FUNCTION archive_old_tournaments() IS 'Automatically archives tournam
 COMMENT ON VIEW public_visible_tournaments IS 'Public view showing only tournaments that are visible to players';
 
 
+
+

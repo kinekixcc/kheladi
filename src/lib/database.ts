@@ -129,13 +129,49 @@ export const tournamentService = {
       throw new Error('Supabase not connected.');
     }
 
+    // Import validation functions
+    const { validateTournamentData, sanitizeInput } = await import('../utils/dataValidation');
+
+    // Sanitize and prepare data
+    const sanitizedData = {
+      ...tournamentData,
+      name: sanitizeInput(tournamentData.name || ''),
+      description: sanitizeInput(tournamentData.description || ''),
+      venue_name: sanitizeInput(tournamentData.venue_name || ''),
+      venue_address: sanitizeInput(tournamentData.venue_address || ''),
+      rules: sanitizeInput(tournamentData.rules || ''),
+      requirements: sanitizeInput(tournamentData.requirements || ''),
+      // Ensure required fields have defaults
+      status: tournamentData.status || 'pending_approval',
+      visibility: tournamentData.visibility || 'public',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      // Ensure organizer_id is set
+      organizer_id: tournamentData.organizer_id || tournamentData.user_id
+    };
+
+    // Validate tournament data
+    validateTournamentData(sanitizedData);
+
+    console.log('🏆 Creating tournament with data:', {
+      name: sanitizedData.name,
+      sport_type: sanitizedData.sport_type,
+      organizer_id: sanitizedData.organizer_id,
+      status: sanitizedData.status
+    });
+
     const { data, error } = await supabase
       .from('tournaments')
-      .insert([tournamentData])
+      .insert([sanitizedData])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Tournament creation failed:', error);
+      throw error;
+    }
+    
+    console.log('✅ Tournament created successfully:', data.name);
     return data;
   },
 

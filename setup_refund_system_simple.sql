@@ -56,3 +56,6 @@ COMMENT ON TABLE public.tournament_rejections IS 'Preserves rejected tournament 
 
 
 
+
+
+

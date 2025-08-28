@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Users, Star, Trophy, Clock, Shield, Calendar, UserPlus, ArrowRight, Play, Award, Zap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import TournamentCard from '../components/tournament/TournamentCard'; // Import the new TournamentCard
 import { tournamentService } from '../lib/database';
 import { venueDiscoveryService } from '../lib/venueService';
 import { useAuth } from '../context/AuthContext';
@@ -346,95 +347,7 @@ export const Home: React.FC = () => {
           ) : publicTournaments.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {publicTournaments.map((tournament, index) => (
-                <motion.div
-                  key={tournament.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card className="h-full hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-0 bg-white/80 backdrop-blur-sm">
-                    {/* Tournament Header with Background */}
-                    <div className="relative h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-t-xl overflow-hidden">
-                      <div className="absolute inset-0 bg-black/20"></div>
-                      <div className="absolute top-4 right-4">
-                        {tournament.is_recurring && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 backdrop-blur-sm">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Recurring
-                          </span>
-                        )}
-                      </div>
-                      <div className="absolute bottom-4 left-4 text-white">
-                        <h3 className="text-xl font-bold">{tournament.sport_type}</h3>
-                      </div>
-                    </div>
-
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
-                        {tournament.name}
-                      </h3>
-
-                      {/* Tournament Details */}
-                      <div className="space-y-3 mb-6">
-                        <div className="flex items-center space-x-3 text-gray-600">
-                          <Calendar className="h-5 w-5 text-blue-500" />
-                          <span>Starts {formatDate(tournament.start_date)}</span>
-                        </div>
-                        <div className="flex items-center space-x-3 text-gray-600">
-                          <Users className="h-5 w-5 text-green-500" />
-                          <span>
-                            {tournament.current_participants || 0}/{tournament.max_participants} participants
-                          </span>
-                        </div>
-                        {tournament.entry_fee > 0 && (
-                          <div className="flex items-center space-x-3">
-                            <span className="font-bold text-green-600 text-lg">
-                              Entry Fee: रू {tournament.entry_fee}
-                            </span>
-                          </div>
-                        )}
-                        {tournament.venue_name && (
-                          <div className="flex items-center space-x-3 text-gray-600">
-                            <MapPin className="h-5 w-5 text-red-500" />
-                            <span className="line-clamp-1">{tournament.venue_name}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Tags */}
-                      {tournament.tags && tournament.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-6">
-                          {tournament.tags.slice(0, 3).map((tag: string, tagIndex: number) => (
-                            <span
-                              key={tagIndex}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Action Buttons */}
-                      <div className="flex space-x-3">
-                        <Button
-                          onClick={() => navigate(`/tournament/${tournament.id}`)}
-                          variant="outline"
-                          className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50"
-                        >
-                          View Details
-                        </Button>
-                        <Button
-                          onClick={() => handleJoinTournament(tournament.id)}
-                          className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                        >
-                          <UserPlus className="h-4 w-4 mr-2" />
-                          Join Now
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
+                <TournamentCard key={tournament.id} tournament={tournament} />
               ))}
             </div>
           ) : (
@@ -724,3 +637,15 @@ export const Home: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
+
+
+

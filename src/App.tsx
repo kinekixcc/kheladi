@@ -35,6 +35,7 @@ import { PWAInstallButton } from './components/ui/PWAInstallButton';
 import { PWAStatus } from './components/ui/PWAStatus';
 import { ProtectedRoute } from './components/ui/ProtectedRoute';
 import { EditTournament } from './pages/EditTournament';
+import { SaaSDesignShowcase } from './pages/SaaSDesignShowcase'; // Import the new showcase page
 
 // Mobile components
 import { MobileLayout } from './components/layout/MobileLayout';
@@ -278,6 +279,7 @@ function App() {
                   </>
                 </ProtectedRoute>
               } />
+              <Route path="/design-showcase" element={<SaaSDesignShowcase />} /> {/* Add the new showcase route */}
             </Routes>
 
             <Toaster
